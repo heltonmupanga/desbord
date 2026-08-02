@@ -636,6 +636,7 @@
       <div>
         <h1>📺 Gestão de Assinaturas</h1>
         <p>Clientes, serviços, credenciais e datas num único lugar.</p>
+        <small id="firebaseStatus" style="display:block;margin-top:6px;color:var(--muted);">☁️ A ligar ao Firebase...</small>
       </div>
 
       <div class="top-actions">
@@ -727,7 +728,7 @@
     </section>
 
     <p class="footer-note">
-      Os dados ficam guardados neste navegador através do localStorage.
+      Os dados ficam guardados no Firebase e sincronizados entre PC e celular.
     </p>
   </main>
 
@@ -819,6 +820,33 @@
     </div>
   </div>
 
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0A3F-5JkTwr1ewspw0mxFQAZCjmB75MM",
+      authDomain: "shelcia-bedc0.firebaseapp.com",
+      projectId: "shelcia-bedc0",
+      storageBucket: "shelcia-bedc0.firebasestorage.app",
+      messagingSenderId: "1005119493894",
+      appId: "1:1005119493894:web:2160fe086f593843677087",
+      measurementId: "G-5M373W0JMM"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    window.db = firebase.firestore();
+    window.authFirebase = firebase.auth();
+
+    console.log("✅ Firebase conectado:", firebaseConfig.projectId);
+  </script>
+
+
   <script>
 
     const LOGIN_EMAIL = "coringa@gmail.com";
@@ -885,7 +913,7 @@
     function getDatabase() {
       if (!window.firebase || !firebase.apps.length) {
         throw new Error(
-          "Firebase não foi inicializado. Confirma se o ficheiro firebase-web.js está na mesma pasta."
+          "Firebase não foi inicializado. Atualize a página e confirme a ligação à internet."
         );
       }
 
@@ -902,7 +930,6 @@
 
         unsubscribeFirestore = database
           .collection(COLLECTION_NAME)
-          .orderBy("createdAt", "desc")
           .onSnapshot(
             snapshot => {
               subscriptions = snapshot.docs.map(doc => ({
@@ -910,12 +937,16 @@
                 ...doc.data()
               }));
 
+              const statusEl = document.querySelector("#firebaseStatus");
+              if (statusEl) statusEl.textContent = "☁️ Firebase sincronizado";
               render();
             },
             error => {
               console.error("Erro ao carregar assinaturas:", error);
+              const statusEl = document.querySelector("#firebaseStatus");
+              if (statusEl) statusEl.textContent = "⚠️ Erro na ligação ao Firebase";
               alert(
-                "Não foi possível carregar os dados do Firebase. Verifica o firebase-web.js e as regras do Firestore."
+                "Não foi possível carregar os dados do Firebase. Verifique as regras do Firestore e a ligação à internet."
               );
             }
           );
@@ -1357,7 +1388,7 @@
       event.preventDefault();
 
       const item = {
-        id: els.editId.value || crypto.randomUUID(),
+        id: els.editId.value || "",
         clientName: $("#clientName").value.trim(),
         clientPhone: $("#clientPhone").value.trim(),
         service: $("#service").value,
