@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestão de Assinaturas</title>
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --card-soft: #fafbfc;
+      --text: #182230;
+      --muted: #667085;
+      --border: #e4e7ec;
+      --primary: #6c4cff;
+      --primary-dark: #5538db;
+      --success: #067647;
+      --success-bg: #ecfdf3;
+      --warning: #b54708;
+      --warning-bg: #fffaeb;
+      --danger: #b42318;
+      --danger-bg: #fef3f2;
+      --info: #175cd3;
+      --info-bg: #eff8ff;
+      --shadow: 0 12px 30px rgba(16, 24, 40, .08);
+    }
+
+    body.dark {
+      --bg: #0d1117;
+      --card: #161b22;
+      --card-soft: #11161d;
+      --text: #f0f3f7;
+      --muted: #98a2b3;
+      --border: #2a303a;
+      --primary: #8b6cff;
+      --primary-dark: #7357e6;
+      --success: #75e0a7;
+      --success-bg: #123524;
+      --warning: #fdb022;
+      --warning-bg: #3b2a05;
+      --danger: #f97066;
+      --danger-bg: #3b1515;
+      --info: #84caff;
+      --info-bg: #102a43;
+      --shadow: 0 12px 30px rgba(0, 0, 0, .28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background .25s, color .25s;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .container {
+      width: min(1220px, calc(100% - 28px));
+      margin: 28px auto 60px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .topbar h1 {
+      margin: 0 0 5px;
+      font-size: clamp(25px, 4vw, 36px);
+    }
+
+    .topbar p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-light {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 30px;
+      margin-top: 8px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+      background: var(--card);
+      color: var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 76, 255, .12);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1120px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 13px;
+      background: var(--card-soft);
+    }
+
+    td {
+      font-size: 14px;
+    }
+
+    .client-name {
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge.active {
+      color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .badge.soon {
+      color: var(--warning);
+      background: var(--warning-bg);
+    }
+
+    .badge.expired {
+      color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 7px 9px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .icon-btn.whatsapp {
+      background: #25d366;
+      color: #fff;
+      border-color: #25d366;
+    }
+
+    .empty {
+      padding: 38px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .mobile-list {
+      display: none;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .mobile-card {
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 15px;
+    }
+
+    .mobile-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .mobile-info {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mobile-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .mobile-row span:first-child {
+      color: var(--muted);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 24, 40, .62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(760px, 100%);
+      max-height: 92vh;
+      overflow-y: auto;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, .25);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+    }
+
+    .close {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    form {
+      padding: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .password-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 950px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filters {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filters .search {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        width: min(100% - 18px, 720px);
+        margin-top: 16px;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .top-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .top-actions .btn {
+        width: 100%;
+      }
+
+      .cards {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .filters .search {
+        grid-column: auto;
+      }
+
+      .table-wrap {
+        display: none;
+      }
+
+      .mobile-list {
+        display: grid;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+      .modal {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .modal-card {
+        border-radius: 18px 18px 0 0;
+        max-height: 95vh;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .mobile-row {
+        flex-direction: column;
+        gap: 3px;
+      }
+    }
+  
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(108, 76, 255, .35), transparent 35%),
+        radial-gradient(circle at bottom left, rgba(37, 211, 102, .18), transparent 30%),
+        var(--bg);
+    }
+
+    .login-screen.hidden {
+      display: none;
+    }
+
+    .login-box {
+      width: min(420px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .22);
+    }
+
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--primary), #24c7ff);
+      color: white;
+      font-size: 30px;
+      box-shadow: 0 12px 30px rgba(108, 76, 255, .28);
+    }
+
+    .login-box h2 {
+      margin: 0 0 7px;
+      font-size: 28px;
+    }
+
+    .login-box p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .login-field {
+      margin-bottom: 14px;
+    }
+
+    .login-field label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .login-password-row {
+      position: relative;
+    }
+
+    .login-password-row input {
+      padding-right: 92px;
+    }
+
+    .login-password-row button {
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--primary);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .login-error {
+      display: none;
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .login-error.show {
+      display: block;
+    }
+
+    .login-submit {
+      width: 100%;
+      margin-top: 18px;
+    }
+
+    .logout-btn {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    @media (max-width: 430px) {
+      .login-box {
+        padding: 22px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <section class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">🔐</div>
+      <h2>Entrar no painel</h2>
+      <p>Use o e-mail e a palavra-passe definidos no código para abrir a gestão de assinaturas.</p>
+
+      <form id="loginForm">
+        <div class="login-field">
+          <label for="loginEmail">E-mail</label>
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="Digite o e-mail" />
+        </div>
+
+        <div class="login-field">
+          <label for="loginPassword">Palavra-passe</label>
+          <div class="login-password-row">
+            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Digite a palavra-passe" />
+            <button type="button" id="showLoginPassword">Mostrar</button>
+          </div>
+        </div>
+
+        <div class="login-error" id="loginError">
+          E-mail ou palavra-passe incorretos.
+        </div>
+
+        <button class="btn btn-primary login-submit" type="submit">
+          Entrar
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <main class="container">
+    <header class="topbar">
+      <div>
+        <h1>📺 Gestão de Assinaturas</h1>
+        <p>Clientes, serviços, credenciais e datas num único lugar.</p>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn btn-light" id="themeBtn">🌙 Modo escuro</button>
+        <button class="btn btn-light logout-btn" id="logoutBtn">🚪 Sair</button>
+        <button class="btn btn-primary" id="openModalBtn">＋ Adicionar assinatura</button>
+      </div>
+    </header>
+
+    <section class="cards">
+      <div class="card">
+        <span>Total de clientes</span>
+        <strong id="totalClients">0</strong>
+      </div>
+
+      <div class="card">
+        <span>Total de assinaturas</span>
+        <strong id="totalSubscriptions">0</strong>
+      </div>
+
+      <div class="card">
+        <span>Ativas</span>
+        <strong id="activeSubscriptions">0</strong>
+      </div>
+
+      <div class="card">
+        <span>Terminam em breve</span>
+        <strong id="soonSubscriptions">0</strong>
+      </div>
+
+      <div class="card">
+        <span>Expiradas</span>
+        <strong id="expiredSubscriptions">0</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="filters">
+        <input
+          class="search"
+          id="searchInput"
+          type="search"
+          placeholder="Pesquisar por nome, número ou e-mail..."
+        />
+
+        <select id="serviceFilter">
+          <option value="">Todos os serviços</option>
+          <option>Netflix</option>
+          <option>Prime Video</option>
+          <option>Spotify</option>
+          <option>Crunchyroll</option>
+          <option>Outro</option>
+        </select>
+
+        <select id="statusFilter">
+          <option value="">Todos os estados</option>
+          <option value="active">Ativas</option>
+          <option value="soon">Terminam em breve</option>
+          <option value="expired">Expiradas</option>
+        </select>
+
+        <button class="btn btn-light" id="clearFiltersBtn">Limpar</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Credenciais</th>
+              <th>Valor</th>
+              <th>Início</th>
+              <th>Término</th>
+              <th>Estado</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+
+          <tbody id="subscriptionsBody"></tbody>
+        </table>
+
+        <div class="empty" id="emptyState">
+          Ainda não existem assinaturas registadas.
+        </div>
+      </div>
+
+      <div class="mobile-list" id="mobileList"></div>
+    </section>
+
+    <p class="footer-note">
+      Os dados ficam guardados neste navegador através do localStorage.
+    </p>
+  </main>
+
+  <div class="modal" id="subscriptionModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modalTitle">Adicionar assinatura</h2>
+        <button class="close" id="closeModalBtn" type="button">×</button>
+      </div>
+
+      <form id="subscriptionForm">
+        <input type="hidden" id="editId" />
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="clientName">Nome do cliente *</label>
+            <input id="clientName" required />
+          </div>
+
+          <div class="field">
+            <label for="clientPhone">Número do cliente *</label>
+            <input id="clientPhone" required placeholder="84/85/86/87..." />
+          </div>
+
+          <div class="field">
+            <label for="service">Serviço *</label>
+            <select id="service" required>
+              <option value="">Selecionar</option>
+              <option>Netflix</option>
+              <option>Prime Video</option>
+              <option>Spotify</option>
+              <option>Crunchyroll</option>
+              <option>Outro</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="amount">Valor pago (MT)</label>
+            <input id="amount" type="number" min="0" step="0.01" />
+          </div>
+
+          <div class="field">
+            <label for="accountEmail">E-mail da conta</label>
+            <input id="accountEmail" type="email" />
+          </div>
+
+          <div class="field">
+            <label for="accountPassword">Palavra-passe</label>
+
+            <div class="password-row">
+              <input id="accountPassword" type="password" />
+              <button class="btn btn-light" type="button" id="togglePassword">
+                Mostrar
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="profileName">Perfil / PIN</label>
+            <input id="profileName" placeholder="Ex.: Perfil 2 / PIN 1234" />
+          </div>
+
+          <div class="field">
+            <label for="startDate">Data de início *</label>
+            <input id="startDate" type="date" required />
+          </div>
+
+          <div class="field">
+            <label for="endDate">Data de término *</label>
+            <input id="endDate" type="date" required />
+          </div>
+
+          <div class="field full">
+            <label for="notes">Observações</label>
+            <textarea id="notes" rows="3" placeholder="Informações adicionais..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-light" type="button" id="cancelBtn">
+            Cancelar
+          </button>
+
+          <button class="btn btn-primary" type="submit">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+
+    const LOGIN_EMAIL = "coringa@gmail.com";
+    const LOGIN_PASSWORD = "871152";
+    const LOGIN_SESSION_KEY = "gestao_assinaturas_logado";
+
+    const COLLECTION_NAME = "assinaturas";
+    const THEME_KEY = "gestao_assinaturas_tema";
+
+    const $ = (selector) => document.querySelector(selector);
+
+    const els = {
+      modal: $("#subscriptionModal"),
+      form: $("#subscriptionForm"),
+      body: $("#subscriptionsBody"),
+      mobileList: $("#mobileList"),
+      empty: $("#emptyState"),
+      modalTitle: $("#modalTitle"),
+      editId: $("#editId"),
+      search: $("#searchInput"),
+      serviceFilter: $("#serviceFilter"),
+      statusFilter: $("#statusFilter"),
+      totalClients: $("#totalClients"),
+      totalSubscriptions: $("#totalSubscriptions"),
+      activeSubscriptions: $("#activeSubscriptions"),
+      soonSubscriptions: $("#soonSubscriptions"),
+      expiredSubscriptions: $("#expiredSubscriptions"),
+      themeBtn: $("#themeBtn"),
+      loginScreen: $("#loginScreen"),
+      loginForm: $("#loginForm"),
+      loginError: $("#loginError"),
+      logoutBtn: $("#logoutBtn")
+    };
+
+    let subscriptions = [];
+    let unsubscribeFirestore = null;
+
+
+    function checkLogin() {
+      const loggedIn = sessionStorage.getItem(LOGIN_SESSION_KEY) === "true";
+      els.loginScreen.classList.toggle("hidden", loggedIn);
+    }
+
+    function login(email, password) {
+      if (email === LOGIN_EMAIL && password === LOGIN_PASSWORD) {
+        sessionStorage.setItem(LOGIN_SESSION_KEY, "true");
+        els.loginError.classList.remove("show");
+        els.loginScreen.classList.add("hidden");
+        return true;
+      }
+
+      els.loginError.classList.add("show");
+      return false;
+    }
+
+    function logout() {
+      sessionStorage.removeItem(LOGIN_SESSION_KEY);
+      $("#loginEmail").value = "";
+      $("#loginPassword").value = "";
+      els.loginScreen.classList.remove("hidden");
+      $("#loginEmail").focus();
+    }
+
+    function getDatabase() {
+      if (!window.firebase || !firebase.apps.length) {
+        throw new Error(
+          "Firebase não foi inicializado. Confirma se o ficheiro firebase-web.js está na mesma pasta."
+        );
+      }
+
+      return window.db || firebase.firestore();
+    }
+
+    function startFirestoreSync() {
+      try {
+        const database = getDatabase();
+
+        if (unsubscribeFirestore) {
+          unsubscribeFirestore();
+        }
+
+        unsubscribeFirestore = database
+          .collection(COLLECTION_NAME)
+          .orderBy("createdAt", "desc")
+          .onSnapshot(
+            snapshot => {
+              subscriptions = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+              }));
+
+              render();
+            },
+            error => {
+              console.error("Erro ao carregar assinaturas:", error);
+              alert(
+                "Não foi possível carregar os dados do Firebase. Verifica o firebase-web.js e as regras do Firestore."
+              );
+            }
+          );
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+
+    async function saveSubscriptionToFirestore(item) {
+      const database = getDatabase();
+      const data = { ...item };
+      delete data.id;
+
+      if (item.id) {
+        await database
+          .collection(COLLECTION_NAME)
+          .doc(item.id)
+          .set(data, { merge: true });
+
+        return item.id;
+      }
+
+      const reference = await database
+        .collection(COLLECTION_NAME)
+        .add({
+          ...data,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+      return reference.id;
+    }
+
+    async function deleteSubscriptionFromFirestore(id) {
+      const database = getDatabase();
+
+      await database
+        .collection(COLLECTION_NAME)
+        .doc(id)
+        .delete();
+    }
+
+    function loadTheme() {
+      const savedTheme = localStorage.getItem(THEME_KEY);
+
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+      }
+
+      updateThemeButton();
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+
+      const theme = document.body.classList.contains("dark")
+        ? "dark"
+        : "light";
+
+      localStorage.setItem(THEME_KEY, theme);
+      updateThemeButton();
+    }
+
+    function updateThemeButton() {
+      const dark = document.body.classList.contains("dark");
+
+      els.themeBtn.textContent = dark
+        ? "☀️ Modo claro"
+        : "🌙 Modo escuro";
+    }
+
+    function escapeHtml(value = "") {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function parseLocalDate(dateString) {
+      const [year, month, day] = dateString.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) {
+        return "—";
+      }
+
+      return new Intl.DateTimeFormat("pt-PT").format(
+        parseLocalDate(dateString)
+      );
+    }
+
+    function daysUntil(dateString) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const end = parseLocalDate(dateString);
+      end.setHours(0, 0, 0, 0);
+
+      return Math.ceil((end - today) / 86400000);
+    }
+
+    function getStatus(item) {
+      const days = daysUntil(item.endDate);
+
+      if (days < 0) {
+        return {
+          key: "expired",
+          label: days === -1
+            ? "Expirou ontem"
+            : `Expirou há ${Math.abs(days)} dias`
+        };
+      }
+
+      if (days <= 7) {
+        return {
+          key: "soon",
+          label: days === 0
+            ? "Termina hoje"
+            : `Termina em ${days} dia${days === 1 ? "" : "s"}`
+        };
+      }
+
+      return {
+        key: "active",
+        label: `Ativa · ${days} dias`
+      };
+    }
+
+    function normalizePhone(phone) {
+      let number = String(phone || "").replace(/\D/g, "");
+
+      if (number.startsWith("258")) {
+        return number;
+      }
+
+      if (number.length === 9) {
+        return "258" + number;
+      }
+
+      return number;
+    }
+
+    function buildWhatsAppMessage(item) {
+      const status = getStatus(item);
+      let message = "";
+
+      if (status.key === "expired") {
+        message =
+          `Olá ${item.clientName}, a sua assinatura de ${item.service} terminou no dia ${formatDate(item.endDate)}. ` +
+          `Deseja renovar por mais 30 dias?`;
+      } else if (status.key === "soon") {
+        message =
+          `Olá ${item.clientName}, a sua assinatura de ${item.service} ${status.label.toLowerCase()}. ` +
+          `Deseja renovar antecipadamente por mais 30 dias?`;
+      } else {
+        message =
+          `Olá ${item.clientName}, a sua assinatura de ${item.service} está ativa até ${formatDate(item.endDate)}.`;
+      }
+
+      return encodeURIComponent(message);
+    }
+
+    function openWhatsApp(id) {
+      const item = subscriptions.find(subscription => subscription.id === id);
+
+      if (!item) {
+        return;
+      }
+
+      const phone = normalizePhone(item.clientPhone);
+
+      if (!phone) {
+        alert("Este cliente não possui um número válido.");
+        return;
+      }
+
+      const url = `https://wa.me/${phone}?text=${buildWhatsAppMessage(item)}`;
+      window.open(url, "_blank");
+    }
+
+    function renderDashboard() {
+      const clientNumbers = new Set(
+        subscriptions
+          .map(item => item.clientPhone.trim())
+          .filter(Boolean)
+      );
+
+      const statuses = subscriptions.map(getStatus);
+
+      els.totalClients.textContent = clientNumbers.size;
+      els.totalSubscriptions.textContent = subscriptions.length;
+
+      els.activeSubscriptions.textContent =
+        statuses.filter(status => status.key === "active").length;
+
+      els.soonSubscriptions.textContent =
+        statuses.filter(status => status.key === "soon").length;
+
+      els.expiredSubscriptions.textContent =
+        statuses.filter(status => status.key === "expired").length;
+    }
+
+    function getFilteredSubscriptions() {
+      const search = els.search.value.trim().toLowerCase();
+      const service = els.serviceFilter.value;
+      const status = els.statusFilter.value;
+
+      return subscriptions
+        .filter(item => {
+          const searchable = [
+            item.clientName,
+            item.clientPhone,
+            item.accountEmail,
+            item.service
+          ].join(" ").toLowerCase();
+
+          const matchesSearch =
+            !search || searchable.includes(search);
+
+          const matchesService =
+            !service || item.service === service;
+
+          const matchesStatus =
+            !status || getStatus(item).key === status;
+
+          return matchesSearch && matchesService && matchesStatus;
+        })
+        .sort(
+          (a, b) =>
+            parseLocalDate(a.endDate) - parseLocalDate(b.endDate)
+        );
+    }
+
+    function renderTable() {
+      const filtered = getFilteredSubscriptions();
+
+      els.body.innerHTML = filtered.map(item => {
+        const status = getStatus(item);
+
+        const credentials =
+          item.accountEmail || item.profileName
+            ? `
+              <div>${escapeHtml(item.accountEmail || "Sem e-mail")}</div>
+              <div class="sub">${escapeHtml(item.profileName || "Sem perfil/PIN")}</div>
+            `
+            : "—";
+
+        return `
+          <tr>
+            <td>
+              <div class="client-name">${escapeHtml(item.clientName)}</div>
+              <div class="sub">${escapeHtml(item.clientPhone)}</div>
+            </td>
+
+            <td>${escapeHtml(item.service)}</td>
+
+            <td>${credentials}</td>
+
+            <td>
+              ${item.amount
+                ? `${Number(item.amount).toLocaleString("pt-PT")} MT`
+                : "—"}
+            </td>
+
+            <td>${formatDate(item.startDate)}</td>
+
+            <td>${formatDate(item.endDate)}</td>
+
+            <td>
+              <span class="badge ${status.key}">
+                ${status.label}
+              </span>
+            </td>
+
+            <td>
+              <div class="actions">
+                <button class="icon-btn" onclick="editSubscription('${item.id}')">
+                  ✏️ Editar
+                </button>
+
+                <button class="icon-btn" onclick="renewSubscription('${item.id}')">
+                  🔄 +30 dias
+                </button>
+
+                <button class="icon-btn whatsapp" onclick="openWhatsApp('${item.id}')">
+                  💬 Avisar
+                </button>
+
+                <button class="icon-btn" onclick="deleteSubscription('${item.id}')">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      els.mobileList.innerHTML = filtered.map(item => {
+        const status = getStatus(item);
+
+        return `
+          <article class="mobile-card">
+            <div class="mobile-card-top">
+              <div>
+                <div class="client-name">${escapeHtml(item.clientName)}</div>
+                <div class="sub">${escapeHtml(item.clientPhone)}</div>
+              </div>
+
+              <span class="badge ${status.key}">
+                ${status.label}
+              </span>
+            </div>
+
+            <div class="mobile-info">
+              <div class="mobile-row">
+                <span>Serviço</span>
+                <strong>${escapeHtml(item.service)}</strong>
+              </div>
+
+              <div class="mobile-row">
+                <span>Valor</span>
+                <strong>
+                  ${item.amount
+                    ? `${Number(item.amount).toLocaleString("pt-PT")} MT`
+                    : "—"}
+                </strong>
+              </div>
+
+              <div class="mobile-row">
+                <span>Credenciais</span>
+                <strong>${escapeHtml(item.accountEmail || "Sem e-mail")}</strong>
+              </div>
+
+              <div class="mobile-row">
+                <span>Perfil / PIN</span>
+                <strong>${escapeHtml(item.profileName || "—")}</strong>
+              </div>
+
+              <div class="mobile-row">
+                <span>Início</span>
+                <strong>${formatDate(item.startDate)}</strong>
+              </div>
+
+              <div class="mobile-row">
+                <span>Término</span>
+                <strong>${formatDate(item.endDate)}</strong>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="icon-btn" onclick="editSubscription('${item.id}')">
+                ✏️ Editar
+              </button>
+
+              <button class="icon-btn" onclick="renewSubscription('${item.id}')">
+                🔄 +30 dias
+              </button>
+
+              <button class="icon-btn whatsapp" onclick="openWhatsApp('${item.id}')">
+                💬 Avisar
+              </button>
+
+              <button class="icon-btn" onclick="deleteSubscription('${item.id}')">
+                🗑️
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      els.empty.style.display = filtered.length ? "none" : "block";
+
+      if (!filtered.length) {
+        els.mobileList.innerHTML = `
+          <div class="empty">
+            Ainda não existem assinaturas registadas.
+          </div>
+        `;
+      }
+    }
+
+    function render() {
+      renderDashboard();
+      renderTable();
+    }
+
+    function openModal(item = null) {
+      els.form.reset();
+      els.editId.value = "";
+
+      $("#accountPassword").type = "password";
+      $("#togglePassword").textContent = "Mostrar";
+
+      if (item) {
+        els.modalTitle.textContent = "Editar assinatura";
+        els.editId.value = item.id;
+
+        $("#clientName").value = item.clientName;
+        $("#clientPhone").value = item.clientPhone;
+        $("#service").value = item.service;
+        $("#amount").value = item.amount || "";
+        $("#accountEmail").value = item.accountEmail || "";
+        $("#accountPassword").value = item.accountPassword || "";
+        $("#profileName").value = item.profileName || "";
+        $("#startDate").value = item.startDate;
+        $("#endDate").value = item.endDate;
+        $("#notes").value = item.notes || "";
+      } else {
+        els.modalTitle.textContent = "Adicionar assinatura";
+
+        const today = new Date();
+        const nextMonth = new Date(today);
+
+        nextMonth.setDate(nextMonth.getDate() + 30);
+
+        $("#startDate").value = toInputDate(today);
+        $("#endDate").value = toInputDate(nextMonth);
+      }
+
+      els.modal.classList.add("show");
+    }
+
+    function closeModal() {
+      els.modal.classList.remove("show");
+    }
+
+    function toInputDate(date) {
+      const offset = date.getTimezoneOffset();
+      const local = new Date(date.getTime() - offset * 60000);
+
+      return local.toISOString().slice(0, 10);
+    }
+
+    els.form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const item = {
+        id: els.editId.value || crypto.randomUUID(),
+        clientName: $("#clientName").value.trim(),
+        clientPhone: $("#clientPhone").value.trim(),
+        service: $("#service").value,
+        amount: $("#amount").value,
+        accountEmail: $("#accountEmail").value.trim(),
+        accountPassword: $("#accountPassword").value,
+        profileName: $("#profileName").value.trim(),
+        startDate: $("#startDate").value,
+        endDate: $("#endDate").value,
+        notes: $("#notes").value.trim()
+      };
+
+      if (
+        parseLocalDate(item.endDate) <
+        parseLocalDate(item.startDate)
+      ) {
+        alert("A data de término não pode ser anterior à data de início.");
+        return;
+      }
+
+      try {
+        await saveSubscriptionToFirestore(item);
+        closeModal();
+      } catch (error) {
+        console.error("Erro ao guardar:", error);
+        alert("Não foi possível guardar a assinatura no Firebase.");
+      }
+    });
+
+    window.editSubscription = id => {
+      const item = subscriptions.find(
+        subscription => subscription.id === id
+      );
+
+      if (item) {
+        openModal(item);
+      }
+    };
+
+    window.deleteSubscription = id => {
+      const item = subscriptions.find(
+        subscription => subscription.id === id
+      );
+
+      if (!item) {
+        return;
+      }
+
+      const confirmed = confirm(
+        `Apagar a assinatura de ${item.clientName}?`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      deleteSubscriptionFromFirestore(id).catch(error => {
+        console.error("Erro ao apagar:", error);
+        alert("Não foi possível apagar a assinatura.");
+      });
+    };
+
+    window.renewSubscription = id => {
+      const item = subscriptions.find(
+        subscription => subscription.id === id
+      );
+
+      if (!item) {
+        return;
+      }
+
+      let baseDate = parseLocalDate(item.endDate);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (baseDate < today) {
+        baseDate = today;
+      }
+
+      baseDate.setDate(baseDate.getDate() + 30);
+      item.endDate = toInputDate(baseDate);
+
+      saveSubscriptionToFirestore(item).catch(error => {
+        console.error("Erro ao renovar:", error);
+        alert("Não foi possível renovar a assinatura.");
+      });
+    };
+
+    window.openWhatsApp = openWhatsApp;
+
+    $("#openModalBtn").addEventListener("click", () => openModal());
+    $("#closeModalBtn").addEventListener("click", closeModal);
+    $("#cancelBtn").addEventListener("click", closeModal);
+    els.themeBtn.addEventListener("click", toggleTheme);
+
+    els.modal.addEventListener("click", event => {
+      if (event.target === els.modal) {
+        closeModal();
+      }
+    });
+
+    $("#togglePassword").addEventListener("click", () => {
+      const input = $("#accountPassword");
+      const showing = input.type === "text";
+
+      input.type = showing ? "password" : "text";
+
+      $("#togglePassword").textContent =
+        showing ? "Mostrar" : "Ocultar";
+    });
+
+    [els.search, els.serviceFilter, els.statusFilter].forEach(element => {
+      element.addEventListener("input", renderTable);
+      element.addEventListener("change", renderTable);
+    });
+
+    $("#clearFiltersBtn").addEventListener("click", () => {
+      els.search.value = "";
+      els.serviceFilter.value = "";
+      els.statusFilter.value = "";
+
+      renderTable();
+    });
+
+
+    els.loginForm.addEventListener("submit", event => {
+      event.preventDefault();
+
+      login(
+        $("#loginEmail").value.trim(),
+        $("#loginPassword").value
+      );
+    });
+
+    $("#showLoginPassword").addEventListener("click", () => {
+      const input = $("#loginPassword");
+      const showing = input.type === "text";
+
+      input.type = showing ? "password" : "text";
+      $("#showLoginPassword").textContent = showing ? "Mostrar" : "Ocultar";
+    });
+
+    els.logoutBtn.addEventListener("click", logout);
+
+    checkLogin();
+
+    loadTheme();
+    startFirestoreSync();
+  </script>
+</body>
+</html>
