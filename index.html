@@ -4,298 +4,1593 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Gestão de Assinaturas</title>
+
 <style>
 :root{
-  --bg:#f4f7fb;--card:#fff;--soft:#f8fafc;--text:#182230;--muted:#667085;
-  --border:#e4e7ec;--primary:#6c4cff;--primary2:#5538db;--green:#16a34a;
-  --greenbg:#ecfdf3;--yellow:#b77900;--yellowbg:#fff8df;--red:#dc2626;
-  --redbg:#fff0f0;--shadow:0 10px 30px rgba(16,24,40,.08)
+  --bg:#f4f7fb;
+  --card:#fff;
+  --soft:#f8fafc;
+  --text:#182230;
+  --muted:#667085;
+  --border:#e4e7ec;
+  --primary:#6c4cff;
+  --primary2:#5538db;
+  --green:#16a34a;
+  --greenbg:#ecfdf3;
+  --yellow:#b77900;
+  --yellowbg:#fff8df;
+  --red:#dc2626;
+  --redbg:#fff0f0;
+  --shadow:0 10px 30px rgba(16,24,40,.08)
 }
+
 body.dark{
-  --bg:#0d1117;--card:#161b22;--soft:#11161d;--text:#f2f4f7;--muted:#98a2b3;
-  --border:#2a303a;--primary:#8b6cff;--primary2:#7357e6;--green:#4ade80;
-  --greenbg:#123524;--yellow:#fbbf24;--yellowbg:#3b2f08;--red:#f87171;--redbg:#3b1515;
+  --bg:#0d1117;
+  --card:#161b22;
+  --soft:#11161d;
+  --text:#f2f4f7;
+  --muted:#98a2b3;
+  --border:#2a303a;
+  --primary:#8b6cff;
+  --primary2:#7357e6;
+  --green:#4ade80;
+  --greenbg:#123524;
+  --yellow:#fbbf24;
+  --yellowbg:#3b2f08;
+  --red:#f87171;
+  --redbg:#3b1515;
   --shadow:0 10px 30px rgba(0,0,0,.25)
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-.app{width:min(1400px,calc(100% - 28px));margin:25px auto 50px}
-header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
-h1{margin:0;font-size:clamp(25px,4vw,38px)}
-header p{margin:6px 0 0;color:var(--muted)}
-.actions{display:flex;gap:9px;flex-wrap:wrap}
-.btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:11px 15px;border-radius:10px;font-weight:800}
-.btn.primary{background:var(--primary);color:white;border-color:var(--primary)}
-.btn.primary:hover{background:var(--primary2)}
-.btn.green{background:#22c55e;color:white;border-color:#22c55e}
-.btn.red{color:var(--red)}
-.stats{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:18px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:16px;box-shadow:var(--shadow)}
-.stat span{font-size:13px;color:var(--muted)}
-.stat strong{display:block;font-size:25px;margin-top:7px}
-.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}
-.panel-head{padding:17px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
-.panel-head h2{margin:0;font-size:18px}
-.panel-head small{color:var(--muted)}
-.filters{padding:15px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;border-bottom:1px solid var(--border)}
-input,select,textarea{width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,76,255,.12)}
-.table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:1120px}
-th,td{padding:13px 15px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
-th{font-size:12px;color:var(--muted);background:var(--soft)}
-td{font-size:14px}
-.name{font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:3px}
-.badge{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:800;white-space:nowrap}
-.active{background:var(--greenbg);color:var(--green)}
-.soon{background:var(--yellowbg);color:var(--yellow)}
-.expired{background:var(--redbg);color:var(--red)}
-.row-actions{display:flex;gap:5px;flex-wrap:wrap}
-.smallbtn{padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:700}
-.smallbtn.whats{background:#22c55e;color:#fff;border-color:#22c55e}
-.empty{padding:35px;text-align:center;color:var(--muted)}
-.recent{padding:15px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.recent-item{border:1px solid var(--border);background:var(--soft);border-radius:12px;padding:12px}
-.recent-item strong{display:block;margin-bottom:4px}.recent-item small{color:var(--muted)}
-.service-grid{padding:15px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.service-card{border:1px solid var(--border);border-radius:12px;padding:13px;background:var(--soft)}
-.service-card h3{margin:0 0 8px;font-size:14px}.service-card .email{font-weight:700;word-break:break-all}
-.service-card button{margin-top:10px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:15px;z-index:50}
-.modal.show{display:flex}
-.modal-card{width:min(760px,100%);max-height:94vh;overflow:auto;background:var(--card);border-radius:18px}
-.modal-head{display:flex;justify-content:space-between;align-items:center;padding:17px 20px;border-bottom:1px solid var(--border)}
-.modal-head h2{margin:0}.close{border:0;background:none;color:var(--text);font-size:27px}
-.form{padding:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}.full{grid-column:1/-1}
-.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:12px}
-.login{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:18px}
-.login.hide{display:none}.loginbox{width:min(410px,100%);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:27px;box-shadow:var(--shadow)}
-.loginlogo{font-size:35px;margin-bottom:10px}.login h2{margin:0 0 7px}.login p{color:var(--muted);line-height:1.5}.login .field{margin:14px 0}.login button[type=submit]{width:100%;margin-top:10px}
-.error{display:none;color:var(--red);background:var(--redbg);padding:9px;border-radius:8px;font-size:13px;font-weight:700}.error.show{display:block}
-.mobile{display:none}
-@media(max-width:1150px){.stats{grid-template-columns:repeat(4,1fr)}.service-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:800px){
- .app{width:calc(100% - 18px);margin-top:13px}
- header{align-items:stretch;flex-direction:column}
- .actions{display:grid;grid-template-columns:1fr 1fr}.actions .btn{width:100%}
- .stats{grid-template-columns:1fr 1fr}
- .filters{grid-template-columns:1fr}
- .table-wrap{display:none}.mobile{display:grid;padding:10px;gap:10px}
- .mobile-card{border:1px solid var(--border);border-radius:14px;background:var(--soft);padding:14px}
- .mobile-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}
- .mobile-line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
- .mobile-line span{color:var(--muted)}
- .recent{grid-template-columns:1fr 1fr}.service-grid{grid-template-columns:1fr 1fr}
- .grid{grid-template-columns:1fr}.full{grid-column:auto}
- .modal{align-items:flex-end;padding:0}.modal-card{border-radius:18px 18px 0 0;max-height:96vh}
+
+*{
+  box-sizing:border-box
 }
-@media(max-width:450px){.stats{grid-template-columns:1fr}.recent,.service-grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,Arial,sans-serif
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit
+}
+
+button{
+  cursor:pointer
+}
+
+.app{
+  width:min(1400px,calc(100% - 28px));
+  margin:25px auto 50px
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:20px
+}
+
+h1{
+  margin:0;
+  font-size:clamp(25px,4vw,38px)
+}
+
+header p{
+  margin:6px 0 0;
+  color:var(--muted)
+}
+
+.actions{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap
+}
+
+.btn{
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+  padding:11px 15px;
+  border-radius:10px;
+  font-weight:800
+}
+
+.btn.primary{
+  background:var(--primary);
+  color:white;
+  border-color:var(--primary)
+}
+
+.btn.primary:hover{
+  background:var(--primary2)
+}
+
+.btn.green{
+  background:#22c55e;
+  color:white;
+  border-color:#22c55e
+}
+
+.btn.red{
+  color:var(--red)
+}
+
+/* =========================
+   ESTATÍSTICAS
+   ========================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin-bottom:18px
+}
+
+.stat{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:16px;
+  box-shadow:var(--shadow)
+}
+
+.stat span{
+  font-size:13px;
+  color:var(--muted)
+}
+
+.stat strong{
+  display:block;
+  font-size:25px;
+  margin-top:7px
+}
+
+/* =========================
+   PAINÉIS
+   ========================= */
+
+.panel{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  margin-bottom:18px
+}
+
+.panel-head{
+  padding:17px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px
+}
+
+.panel-head h2{
+  margin:0;
+  font-size:18px
+}
+
+.panel-head small{
+  color:var(--muted)
+}
+
+/* =========================
+   FILTROS
+   ========================= */
+
+.filters{
+  padding:15px;
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr auto;
+  gap:10px;
+  border-bottom:1px solid var(--border)
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:11px;
+  outline:none
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(108,76,255,.12)
+}
+
+/* =========================
+   TABELA
+   ========================= */
+
+.table-wrap{
+  overflow:auto
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1120px
+}
+
+th,
+td{
+  padding:13px 15px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  vertical-align:middle
+}
+
+th{
+  font-size:12px;
+  color:var(--muted);
+  background:var(--soft)
+}
+
+td{
+  font-size:14px
+}
+
+.name{
+  font-weight:800
+}
+
+.sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:3px
+}
+
+/* =========================
+   STATUS
+   ========================= */
+
+.badge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap
+}
+
+.active{
+  background:var(--greenbg);
+  color:var(--green)
+}
+
+.soon{
+  background:var(--yellowbg);
+  color:var(--yellow)
+}
+
+.expired{
+  background:var(--redbg);
+  color:var(--red)
+}
+
+/* =========================
+   AÇÕES
+   ========================= */
+
+.row-actions{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap
+}
+
+.smallbtn{
+  padding:7px 9px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+  font-weight:700
+}
+
+.smallbtn.whats{
+  background:#22c55e;
+  color:#fff;
+  border-color:#22c55e
+}
+
+.empty{
+  padding:35px;
+  text-align:center;
+  color:var(--muted)
+}
+
+/* =========================
+   RECENTES
+   ========================= */
+
+.recent{
+  padding:15px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px
+}
+
+.recent-item{
+  border:1px solid var(--border);
+  background:var(--soft);
+  border-radius:12px;
+  padding:12px
+}
+
+.recent-item strong{
+  display:block;
+  margin-bottom:4px
+}
+
+.recent-item small{
+  color:var(--muted)
+}
+
+/* =========================
+   CONTAS POR SERVIÇO
+   ========================= */
+
+.service-grid{
+  padding:15px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px
+}
+
+.service-card{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:13px;
+  background:var(--soft)
+}
+
+.service-card h3{
+  margin:0 0 8px;
+  font-size:14px
+}
+
+.service-card .email{
+  font-weight:700;
+  word-break:break-all
+}
+
+.service-card button{
+  margin-top:10px
+}
+
+/* =========================
+   MODAL
+   ========================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.58);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+  z-index:50
+}
+
+.modal.show{
+  display:flex
+}
+
+.modal-card{
+  width:min(760px,100%);
+  max-height:94vh;
+  overflow:auto;
+  background:var(--card);
+  border-radius:18px
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:17px 20px;
+  border-bottom:1px solid var(--border)
+}
+
+.modal-head h2{
+  margin:0
+}
+
+.close{
+  border:0;
+  background:none;
+  color:var(--text);
+  font-size:27px
+}
+
+.form{
+  padding:20px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:13px
+}
+
+.field label{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:6px
+}
+
+.full{
+  grid-column:1/-1
+}
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.footer{
+  color:var(--muted);
+  font-size:12px;
+  text-align:center;
+  margin-top:12px
+}
+
+/* =========================
+   LOGIN
+   ========================= */
+
+.login{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:var(--bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px
+}
+
+.login.hide{
+  display:none
+}
+
+.loginbox{
+  width:min(410px,100%);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:27px;
+  box-shadow:var(--shadow)
+}
+
+.loginlogo{
+  font-size:35px;
+  margin-bottom:10px
+}
+
+.login h2{
+  margin:0 0 7px
+}
+
+.login p{
+  color:var(--muted);
+  line-height:1.5
+}
+
+.login .field{
+  margin:14px 0
+}
+
+.login button[type=submit]{
+  width:100%;
+  margin-top:10px
+}
+
+.error{
+  display:none;
+  color:var(--red);
+  background:var(--redbg);
+  padding:9px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:700
+}
+
+.error.show{
+  display:block
+}
+
+.mobile{
+  display:none
+}
+
+/* =========================
+   RESPONSIVO
+   ========================= */
+
+@media(max-width:1150px){
+
+  .stats{
+    grid-template-columns:repeat(3,1fr)
+  }
+
+  .service-grid{
+    grid-template-columns:repeat(3,1fr)
+  }
+}
+
+@media(max-width:800px){
+
+  .app{
+    width:calc(100% - 18px);
+    margin-top:13px
+  }
+
+  header{
+    align-items:stretch;
+    flex-direction:column
+  }
+
+  .actions{
+    display:grid;
+    grid-template-columns:1fr 1fr
+  }
+
+  .actions .btn{
+    width:100%
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr
+  }
+
+  .filters{
+    grid-template-columns:1fr
+  }
+
+  .table-wrap{
+    display:none
+  }
+
+  .mobile{
+    display:grid;
+    padding:10px;
+    gap:10px
+  }
+
+  .mobile-card{
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--soft);
+    padding:14px
+  }
+
+  .mobile-top{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px
+  }
+
+  .mobile-line{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:6px 0;
+    border-bottom:1px solid var(--border);
+    font-size:13px
+  }
+
+  .mobile-line span{
+    color:var(--muted)
+  }
+
+  .recent{
+    grid-template-columns:1fr 1fr
+  }
+
+  .service-grid{
+    grid-template-columns:1fr 1fr
+  }
+
+  .grid{
+    grid-template-columns:1fr
+  }
+
+  .full{
+    grid-column:auto
+  }
+
+  .modal{
+    align-items:flex-end;
+    padding:0
+  }
+
+  .modal-card{
+    border-radius:18px 18px 0 0;
+    max-height:96vh
+  }
+}
+
+@media(max-width:450px){
+
+  .stats{
+    grid-template-columns:1fr
+  }
+
+  .recent,
+  .service-grid{
+    grid-template-columns:1fr
+  }
+
+  .actions{
+    grid-template-columns:1fr
+  }
+}
 </style>
 </head>
+
 <body>
 
+<!-- =========================
+     LOGIN
+     ========================= -->
+
 <div id="loginScreen" class="login">
+
   <div class="loginbox">
+
     <div class="loginlogo">🔐</div>
+
     <h2>Gestão de Assinaturas</h2>
-    <p>Painel privado para gerir clientes, serviços, credenciais, pagamentos e validade.</p>
+
+    <p>
+      Painel privado para gerir clientes,
+      serviços, credenciais e validade.
+    </p>
+
     <form id="loginForm">
+
       <div class="field">
         <label>E-mail</label>
-        <input id="loginEmail" type="email" required placeholder="E-mail">
+        <input
+          id="loginEmail"
+          type="email"
+          required
+          placeholder="E-mail"
+        >
       </div>
+
       <div class="field">
         <label>Palavra-passe</label>
-        <input id="loginPass" type="password" required placeholder="Palavra-passe">
+
+        <input
+          id="loginPass"
+          type="password"
+          required
+          placeholder="Palavra-passe"
+        >
       </div>
-      <div id="loginError" class="error">E-mail ou palavra-passe incorretos.</div>
-      <button class="btn primary" type="submit">Entrar</button>
+
+      <div id="loginError" class="error">
+        E-mail ou palavra-passe incorretos.
+      </div>
+
+      <button class="btn primary" type="submit">
+        Entrar
+      </button>
+
     </form>
+
   </div>
+
 </div>
+
+
+<!-- =========================
+     APP
+     ========================= -->
 
 <main class="app">
+
 <header>
+
   <div>
+
     <h1>📺 Gestão de Assinaturas</h1>
-    <p>Clientes, serviços, credenciais, pagamentos e datas num único lugar.</p>
-    <small id="connection" style="color:var(--muted)">☁️ A ligar ao Firebase...</small>
+
+    <p>
+      Clientes, serviços, credenciais e datas
+      num único lugar.
+    </p>
+
+    <small
+      id="connection"
+      style="color:var(--muted)"
+    >
+      ☁️ A ligar ao Firebase...
+    </small>
+
   </div>
+
+
   <div class="actions">
-    <button class="btn" id="themeBtn">🌙 Modo escuro</button>
-    <button class="btn" id="logoutBtn">🚪 Sair</button>
-    <button class="btn primary" id="addBtn">＋ Nova assinatura</button>
+
+    <button class="btn" id="themeBtn">
+      🌙 Modo escuro
+    </button>
+
+    <button class="btn" id="logoutBtn">
+      🚪 Sair
+    </button>
+
+    <button class="btn primary" id="addBtn">
+      ＋ Nova assinatura
+    </button>
+
   </div>
+
 </header>
 
+
+<!-- =========================
+     ESTATÍSTICAS
+     ========================= -->
+
 <section class="stats">
-  <div class="stat"><span>Clientes</span><strong id="sClients">0</strong></div>
-  <div class="stat"><span>Assinaturas</span><strong id="sSubs">0</strong></div>
-  <div class="stat"><span>Ativas</span><strong id="sActive">0</strong></div>
-  <div class="stat"><span>Expiram ≤ 7 dias</span><strong id="sSoon">0</strong></div>
-  <div class="stat"><span>Expiradas</span><strong id="sExpired">0</strong></div>
-  <div class="stat"><span>Total recebido</span><strong id="sRevenue">0 MT</strong></div>
-  <div class="stat"><span>Investimento</span><strong id="sCost">0 MT</strong></div>
-  <div class="stat"><span>Lucro</span><strong id="sProfit">0 MT</strong></div>
-</section>
 
-<section class="panel">
-  <div class="panel-head">
-    <div><h2>🆕 Registos recentes</h2><small>Os últimos clientes adicionados aparecem aqui.</small></div>
+  <div class="stat">
+
+    <span>Clientes</span>
+
+    <strong id="sClients">
+      0
+    </strong>
+
   </div>
-  <div class="recent" id="recentList"></div>
-</section>
 
-<section class="panel">
-  <div class="panel-head">
-    <div><h2>📧 Contas por serviço</h2><small>Encontra rapidamente os e-mails usados em cada serviço.</small></div>
+
+  <div class="stat">
+
+    <span>Assinaturas</span>
+
+    <strong id="sSubs">
+      0
+    </strong>
+
   </div>
-  <div class="service-grid" id="serviceAccounts"></div>
+
+
+  <div class="stat">
+
+    <span>Ativas</span>
+
+    <strong id="sActive">
+      0
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <span>Expiram ≤ 7 dias</span>
+
+    <strong id="sSoon">
+      0
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <span>Expiradas</span>
+
+    <strong id="sExpired">
+      0
+    </strong>
+
+  </div>
+
 </section>
 
+
+<!-- =========================
+     REGISTOS RECENTES
+     ========================= -->
+
 <section class="panel">
+
+  <div class="panel-head">
+
+    <div>
+
+      <h2>
+        🆕 Registos recentes
+      </h2>
+
+      <small>
+        Os últimos clientes adicionados aparecem aqui.
+      </small>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="recent"
+    id="recentList"
+  ></div>
+
+</section>
+
+
+<!-- =========================
+     CONTAS POR SERVIÇO
+     ========================= -->
+
+<section class="panel">
+
+  <div class="panel-head">
+
+    <div>
+
+      <h2>
+        📧 Contas por serviço
+      </h2>
+
+      <small>
+        Encontra rapidamente os e-mails usados em cada serviço.
+      </small>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="service-grid"
+    id="serviceAccounts"
+  ></div>
+
+</section>
+
+
+<!-- =========================
+     LISTA
+     ========================= -->
+
+<section class="panel">
+
   <div class="filters">
-    <input id="search" placeholder="Pesquisar por nome, número ou e-mail...">
+
+    <input
+      id="search"
+      placeholder="Pesquisar por nome, número ou e-mail..."
+    >
+
+
     <select id="serviceFilter">
-      <option value="">Todos os serviços</option>
-      <option>Netflix</option><option>Prime Video</option><option>Spotify</option>
-      <option>Crunchyroll</option><option>Link de jogo para PC</option><option>Outro</option>
+
+      <option value="">
+        Todos os serviços
+      </option>
+
+      <option>Netflix</option>
+
+      <option>Prime Video</option>
+
+      <option>Spotify</option>
+
+      <option>Crunchyroll</option>
+
+      <option>Link de jogo para PC</option>
+
+      <option>Outro</option>
+
     </select>
+
+
     <select id="statusFilter">
-      <option value="">Todos os estados</option>
-      <option value="active">Ativas</option>
-      <option value="soon">Expiram em breve</option>
-      <option value="expired">Expiradas</option>
+
+      <option value="">
+        Todos os estados
+      </option>
+
+      <option value="active">
+        Ativas
+      </option>
+
+      <option value="soon">
+        Expiram em breve
+      </option>
+
+      <option value="expired">
+        Expiradas
+      </option>
+
     </select>
+
+
     <select id="sortFilter">
-      <option value="new">Mais recentes</option>
-      <option value="end">Término mais próximo</option>
-      <option value="name">Nome A-Z</option>
+
+      <option value="new">
+        Mais recentes
+      </option>
+
+      <option value="end">
+        Término mais próximo
+      </option>
+
+      <option value="name">
+        Nome A-Z
+      </option>
+
     </select>
-    <button class="btn" id="clearBtn">Limpar</button>
+
+
+    <button
+      class="btn"
+      id="clearBtn"
+    >
+      Limpar
+    </button>
+
   </div>
+
+
+  <!-- DESKTOP -->
 
   <div class="table-wrap">
+
     <table>
-      <thead><tr>
-        <th>#</th><th>Cliente</th><th>Serviço</th><th>Credenciais</th>
-        <th>Valor</th><th>Início</th><th>Término</th><th>Estado</th><th>Ações</th>
-      </tr></thead>
+
+      <thead>
+
+        <tr>
+
+          <th>#</th>
+
+          <th>Cliente</th>
+
+          <th>Serviço</th>
+
+          <th>Credenciais</th>
+
+          <th>Valor</th>
+
+          <th>Início</th>
+
+          <th>Término</th>
+
+          <th>Estado</th>
+
+          <th>Ações</th>
+
+        </tr>
+
+      </thead>
+
+
       <tbody id="tbody"></tbody>
+
     </table>
-    <div class="empty" id="empty">Ainda não existem assinaturas registadas.</div>
+
+
+    <div
+      class="empty"
+      id="empty"
+    >
+      Ainda não existem assinaturas registadas.
+    </div>
+
   </div>
-  <div class="mobile" id="mobileList"></div>
+
+
+  <!-- CELULAR -->
+
+  <div
+    class="mobile"
+    id="mobileList"
+  ></div>
+
 </section>
 
-<div class="footer">Dados sincronizados no Firebase Firestore — funcionam no PC e no celular.</div>
-</main>
 
-<div class="modal" id="modal">
- <div class="modal-card">
-  <div class="modal-head"><h2 id="modalTitle">Nova assinatura</h2><button class="close" id="closeModal">×</button></div>
-  <form class="form" id="form">
-   <input type="hidden" id="editId">
-   <div class="grid">
-    <div class="field"><label>Nome do cliente *</label><input id="name" required></div>
-    <div class="field"><label>Número do cliente *</label><input id="phone" required placeholder="84..., 85..., 86..., 87..."></div>
-    <div class="field"><label>Serviço *</label><select id="service" required>
-      <option value="">Selecionar</option><option>Netflix</option><option>Prime Video</option>
-      <option>Spotify</option><option>Crunchyroll</option><option>Link de jogo para PC</option><option>Outro</option>
-    </select></div>
-    <div class="field"><label>Valor pago (MT)</label><input id="amount" type="number" min="0" step="0.01"></div>
-    <div class="field"><label>Investimento/custo (MT)</label><input id="cost" type="number" min="0" step="0.01"></div>
-    <div class="field"><label>E-mail da conta</label><input id="email" type="email"></div>
-    <div class="field"><label>Palavra-passe da conta</label><input id="password" type="text"></div>
-    <div class="field"><label>Perfil / PIN / informação</label><input id="profile" placeholder="Ex.: Beatriz / PIN 0707"></div>
-    <div class="field"><label>Data de início *</label><input id="start" type="date" required></div>
-    <div class="field"><label>Data de término *</label><input id="end" type="date" required></div>
-    <div class="field full"><label>Observações</label><textarea id="notes" rows="3" placeholder="Informações adicionais..."></textarea></div>
-   </div>
-   <div class="actions" style="justify-content:flex-end;margin-top:18px">
-     <button type="button" class="btn" id="cancelBtn">Cancelar</button>
-     <button type="submit" class="btn primary">Guardar assinatura</button>
-   </div>
-  </form>
- </div>
+<div class="footer">
+
+  Dados sincronizados no Firebase Firestore —
+  funcionam no PC e no celular.
+
 </div>
 
+</main>
+
+
+<!-- =========================
+     MODAL
+     ========================= -->
+
+<div
+  class="modal"
+  id="modal"
+>
+
+  <div class="modal-card">
+
+    <div class="modal-head">
+
+      <h2 id="modalTitle">
+        Nova assinatura
+      </h2>
+
+      <button
+        class="close"
+        id="closeModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form
+      class="form"
+      id="form"
+    >
+
+      <input
+        type="hidden"
+        id="editId"
+      >
+
+
+      <div class="grid">
+
+
+        <div class="field">
+
+          <label>
+            Nome do cliente *
+          </label>
+
+          <input
+            id="name"
+            required
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Número do cliente *
+          </label>
+
+          <input
+            id="phone"
+            required
+            placeholder="84..., 85..., 86..., 87..."
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Serviço *
+          </label>
+
+          <select
+            id="service"
+            required
+          >
+
+            <option value="">
+              Selecionar
+            </option>
+
+            <option>
+              Netflix
+            </option>
+
+            <option>
+              Prime Video
+            </option>
+
+            <option>
+              Spotify
+            </option>
+
+            <option>
+              Crunchyroll
+            </option>
+
+            <option>
+              Link de jogo para PC
+            </option>
+
+            <option>
+              Outro
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Valor pago (MT)
+          </label>
+
+          <input
+            id="amount"
+            type="number"
+            min="0"
+            step="0.01"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Investimento/custo (MT)
+          </label>
+
+          <input
+            id="cost"
+            type="number"
+            min="0"
+            step="0.01"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            E-mail da conta
+          </label>
+
+          <input
+            id="email"
+            type="email"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Palavra-passe da conta
+          </label>
+
+          <input
+            id="password"
+            type="text"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Perfil / PIN / informação
+          </label>
+
+          <input
+            id="profile"
+            placeholder="Ex.: Beatriz / PIN 0707"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Data de início *
+          </label>
+
+          <input
+            id="start"
+            type="date"
+            required
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Data de término *
+          </label>
+
+          <input
+            id="end"
+            type="date"
+            required
+          >
+
+        </div>
+
+
+        <div class="field full">
+
+          <label>
+            Observações
+          </label>
+
+          <textarea
+            id="notes"
+            rows="3"
+            placeholder="Informações adicionais..."
+          ></textarea>
+
+        </div>
+
+
+      </div>
+
+
+      <div
+        class="actions"
+        style="justify-content:flex-end;margin-top:18px"
+      >
+
+        <button
+          type="button"
+          class="btn"
+          id="cancelBtn"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Guardar assinatura
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     FIREBASE
+     ========================= -->
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+
 <script>
+
 /* =========================
-   CONFIGURAÇÃO
+   FIREBASE
    ========================= */
+
 const firebaseConfig={
+
  apiKey:"AIzaSyD0A3F-5JkTwr1ewspw0mxFQAZCjmB75MM",
+
  authDomain:"shelcia-bedc0.firebaseapp.com",
+
  projectId:"shelcia-bedc0",
+
  storageBucket:"shelcia-bedc0.firebasestorage.app",
+
  messagingSenderId:"1005119493894",
+
  appId:"1:1005119493894:web:2160fe086f593843677087"
+
 };
 
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+if(!firebase.apps.length){
+
+ firebase.initializeApp(firebaseConfig);
+
+}
+
+
 const db=firebase.firestore();
+
 const COLLECTION="assinaturas";
 
-/* Login local simples solicitado */
+
+/* =========================
+   LOGIN
+   ========================= */
+
 const LOGIN_EMAIL="coringa@gmail.com";
+
 const LOGIN_PASSWORD="871152";
+
 const SESSION_KEY="gestao_assinaturas_login";
 
+
 let data=[];
+
 let unsubscribe=null;
+
 
 const $=id=>document.getElementById(id);
 
+
+/* =========================
+   DATAS
+   ========================= */
+
 function localDate(s){
+
  if(!s)return null;
- const [y,m,d]=String(s).split("-").map(Number);
+
+ const [y,m,d]=String(s)
+   .split("-")
+   .map(Number);
+
  return new Date(y,m-1,d);
+
 }
+
+
 function inputDate(d){
- const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+
+ const x=new Date(
+   d.getTime() -
+   d.getTimezoneOffset()*60000
+ );
+
  return x.toISOString().slice(0,10);
+
 }
+
+
 function today(){
- const d=new Date();d.setHours(0,0,0,0);return d;
-}
-function daysLeft(s){
- const d=localDate(s); if(!d)return 0;
+
+ const d=new Date();
+
  d.setHours(0,0,0,0);
- return Math.round((d-today())/86400000);
+
+ return d;
+
 }
+
+
+function daysLeft(s){
+
+ const d=localDate(s);
+
+ if(!d)return 0;
+
+ d.setHours(0,0,0,0);
+
+ return Math.round(
+   (d-today()) /
+   86400000
+ );
+
+}
+
+
+/* =========================
+   STATUS
+   ========================= */
+
 function statusOf(x){
+
  const n=daysLeft(x.endDate);
- if(n<0)return {key:"expired",label:n===-1?"Expirou ontem":`Expirou há ${Math.abs(n)} dias`};
- if(n<=7)return {key:"soon",label:n===0?"Termina hoje":`Termina em ${n} dia${n===1?"":"s"}`};
- return {key:"active",label:`Ativa · ${n} dias`};
+
+
+ if(n<0){
+
+   return{
+
+     key:"expired",
+
+     label:
+       n===-1
+       ?"Expirou ontem"
+       :`Expirou há ${Math.abs(n)} dias`
+
+   };
+
+ }
+
+
+ if(n<=7){
+
+   return{
+
+     key:"soon",
+
+     label:
+       n===0
+       ?"Termina hoje"
+       :`Termina em ${n} dia${n===1?"":"s"}`
+
+   };
+
+ }
+
+
+ return{
+
+   key:"active",
+
+   label:`Ativa · ${n} dias`
+
+ };
+
 }
-function money(v){return `${Number(v||0).toLocaleString("pt-PT")} MT`}
-function fmtDate(s){return s?localDate(s).toLocaleDateString("pt-PT"):"—"}
-function esc(v=""){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+
+
+/* =========================
+   FORMATAÇÃO
+   ========================= */
+
+function money(v){
+
+ return `${Number(v||0).toLocaleString("pt-PT")} MT`;
+
+}
+
+
+function fmtDate(s){
+
+ return s
+   ?localDate(s).toLocaleDateString("pt-PT")
+   :"—";
+
+}
+
+
+function esc(v=""){
+
+ return String(v)
+
+   .replaceAll("&","&amp;")
+
+   .replaceAll("<","&lt;")
+
+   .replaceAll(">","&gt;")
+
+   .replaceAll('"',"&quot;")
+
+   .replaceAll("'","&#039;");
+
+}
+
+
+/* =========================
+   TELEFONE
+   ========================= */
+
 function phone(v){
- let n=String(v||"").replace(/\D/g,"");
- if(n.startsWith("258"))return n;
- if(n.length===9)return "258"+n;
+
+ let n=String(v||"")
+   .replace(/\D/g,"");
+
+
+ if(n.startsWith("258"))
+   return n;
+
+
+ if(n.length===9)
+   return "258"+n;
+
+
  return n;
+
 }
+
+
+/* =========================
+   WHATSAPP
+   ========================= */
+
 function wa(item){
+
  const n=phone(item.phone);
- if(!n){alert("Número inválido.");return}
+
+
+ if(!n){
+
+   alert("Número inválido.");
+
+   return;
+
+ }
+
+
  const st=statusOf(item);
+
  let msg;
- if(st.key==="expired") msg=`Olá ${item.name}, a sua assinatura de ${item.service} terminou em ${fmtDate(item.endDate)}. Deseja renovar por mais 30 dias?`;
- else if(st.key==="soon") msg=`Olá ${item.name}, a sua assinatura de ${item.service} ${st.label.toLowerCase()}. Deseja renovar por mais 30 dias?`;
- else msg=`Olá ${item.name}, a sua assinatura de ${item.service} está ativa até ${fmtDate(item.endDate)}.`;
- window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,"_blank");
+
+
+ if(st.key==="expired"){
+
+   msg=
+`Olá ${item.name}, a sua assinatura de ${item.service} terminou em ${fmtDate(item.endDate)}. Deseja renovar por mais 30 dias?`;
+
+ }
+
+
+ else if(st.key==="soon"){
+
+   msg=
+`Olá ${item.name}, a sua assinatura de ${item.service} ${st.label.toLowerCase()}. Deseja renovar por mais 30 dias?`;
+
+ }
+
+
+ else{
+
+   msg=
+`Olá ${item.name}, a sua assinatura de ${item.service} está ativa até ${fmtDate(item.endDate)}.`;
+
+ }
+
+
+ window.open(
+   `https://wa.me/${n}?text=${encodeURIComponent(msg)}`,
+   "_blank"
+ );
+
 }
+
+
+/* =========================
+   COPIAR INFORMAÇÕES
+   ========================= */
+
 function copyInfo(id){
- const x=data.find(a=>a.id===id);if(!x)return;
- const text=`Cliente #${x.number||""}
+
+ const x=data.find(a=>a.id===id);
+
+ if(!x)return;
+
+
+ const text=
+
+`Cliente #${x.number||""}
 Nome: ${x.name}
 Número: ${x.phone}
 Serviço: ${x.service}
@@ -307,220 +1602,1283 @@ Início: ${fmtDate(x.startDate)}
 Término: ${fmtDate(x.endDate)}
 Validade: 30 dias
 Observações: ${x.notes||"—"}`;
- navigator.clipboard.writeText(text).then(()=>alert("Informações copiadas."));
+
+
+ navigator.clipboard
+   .writeText(text)
+   .then(()=>alert("Informações copiadas."));
+
 }
+
 
 /* =========================
    FIRESTORE
    ========================= */
+
 function sync(){
- unsubscribe=db.collection(COLLECTION).onSnapshot(snap=>{
-   data=snap.docs.map(d=>({id:d.id,...d.data()}));
-   $("connection").textContent="☁️ Firebase sincronizado";
+
+ unsubscribe=
+ db.collection(COLLECTION)
+ .onSnapshot(
+
+ snap=>{
+
+   data=snap.docs.map(
+     d=>({
+       id:d.id,
+       ...d.data()
+     })
+   );
+
+
+   $("connection").textContent=
+     "☁️ Firebase sincronizado";
+
+
    render();
- },err=>{
+
+ },
+
+ err=>{
+
    console.error(err);
-   $("connection").textContent="⚠️ Erro no Firebase";
-   alert("Não foi possível carregar o Firebase. Verifique as regras do Firestore.");
- });
+
+
+   $("connection").textContent=
+     "⚠️ Erro no Firebase";
+
+
+   alert(
+     "Não foi possível carregar o Firebase. Verifique as regras do Firestore."
+   );
+
+ }
+
+ );
+
 }
+
+
+/* =========================
+   GUARDAR
+   ========================= */
+
 async function save(item){
+
  const payload={...item};
+
  delete payload.id;
+
+
  if(item.id){
-   await db.collection(COLLECTION).doc(item.id).set(payload,{merge:true});
- }else{
-   const next=data.reduce((m,x)=>Math.max(m,Number(x.number)||0),0)+1;
+
+   await db
+     .collection(COLLECTION)
+     .doc(item.id)
+     .set(payload,{merge:true});
+
+ }
+
+
+ else{
+
+   const next=
+     data.reduce(
+       (m,x)=>
+         Math.max(
+           m,
+           Number(x.number)||0
+         ),
+       0
+     )+1;
+
+
    payload.number=next;
-   payload.createdAt=firebase.firestore.FieldValue.serverTimestamp();
-   await db.collection(COLLECTION).add(payload);
+
+
+   payload.createdAt=
+     firebase.firestore.FieldValue.serverTimestamp();
+
+
+   await db
+     .collection(COLLECTION)
+     .add(payload);
+
  }
+
 }
+
+
+/* =========================
+   APAGAR
+   ========================= */
+
 async function remove(id){
- const x=data.find(a=>a.id===id);if(!x)return;
- if(!confirm(`Apagar definitivamente a assinatura de ${x.name}?\n\nEla será apagada também do Firebase.`))return;
+
+ const x=data.find(
+   a=>a.id===id
+ );
+
+
+ if(!x)return;
+
+
+ if(!confirm(
+
+`Apagar definitivamente a assinatura de ${x.name}?
+
+Ela será apagada também do Firebase.`
+
+ ))return;
+
+
  try{
-   await db.collection(COLLECTION).doc(id).delete();
- }catch(e){
-   console.error(e);alert("Erro ao apagar no Firebase.");
+
+   await db
+     .collection(COLLECTION)
+     .doc(id)
+     .delete();
+
  }
+ catch(e){
+
+   console.error(e);
+
+   alert(
+     "Erro ao apagar no Firebase."
+   );
+
+ }
+
 }
+
+
+/* =========================
+   RENOVAR
+   ========================= */
+
 async function renew(id){
- const x=data.find(a=>a.id===id);if(!x)return;
- let base=localDate(x.endDate)||today();
- if(base<today())base=today();
- base.setDate(base.getDate()+30);
- try{await save({...x,endDate:inputDate(base)})}
- catch(e){console.error(e);alert("Erro ao renovar.");}
-}
 
-/* =========================
-   RENDER
-   ========================= */
-function renderStats(){
- const clients=new Set(data.map(x=>phone(x.phone)).filter(Boolean));
- const st=data.map(statusOf);
- const revenue=data.reduce((a,x)=>a+Number(x.amount||0),0);
- const cost=data.reduce((a,x)=>a+Number(x.cost||0),0);
- $("sClients").textContent=clients.size;
- $("sSubs").textContent=data.length;
- $("sActive").textContent=st.filter(x=>x.key==="active").length;
- $("sSoon").textContent=st.filter(x=>x.key==="soon").length;
- $("sExpired").textContent=st.filter(x=>x.key==="expired").length;
- $("sRevenue").textContent=money(revenue);
- $("sCost").textContent=money(cost);
- $("sProfit").textContent=money(revenue-cost);
-}
-function renderRecent(){
- const recent=[...data].sort((a,b)=>{
-   const aa=a.createdAt?.seconds||0,bb=b.createdAt?.seconds||0;
-   return bb-aa;
- }).slice(0,8);
- $("recentList").innerHTML=recent.length?recent.map(x=>`
-   <div class="recent-item">
-     <strong>#${x.number||"—"} · ${esc(x.name)}</strong>
-     <small>${esc(x.service)} · ${esc(x.phone)}</small><br>
-     <small>${money(x.amount)} · termina ${fmtDate(x.endDate)}</small>
-   </div>`).join(""):`<div class="empty" style="grid-column:1/-1">Ainda não há registos recentes.</div>`;
-}
-function renderServiceAccounts(){
- const services=["Netflix","Prime Video","Spotify","Crunchyroll","Link de jogo para PC","Outro"];
- const html=services.map(service=>{
-   const emails=[...new Set(data.filter(x=>x.service===service&&x.email).map(x=>x.email))];
-   return `<div class="service-card">
-     <h3>${esc(service)}</h3>
-     <div class="email">${emails.length?emails.map(esc).join("<br>"):"Nenhum e-mail registado"}</div>
-     ${emails.length?`<button class="smallbtn" onclick='copyEmails(${JSON.stringify(emails)})'>📋 Copiar</button>`:""}
-   </div>`;
- }).join("");
- $("serviceAccounts").innerHTML=html;
-}
-function copyEmails(arr){
- navigator.clipboard.writeText(arr.join("\n")).then(()=>alert("E-mails copiados."));
-}
-function filtered(){
- const q=$("search").value.trim().toLowerCase();
- const service=$("serviceFilter").value;
- const status=$("statusFilter").value;
- const sort=$("sortFilter").value;
- let a=data.filter(x=>{
-   const text=[x.name,x.phone,x.email,x.service,x.profile].join(" ").toLowerCase();
-   return (!q||text.includes(q))&&(!service||x.service===service)&&(!status||statusOf(x).key===status);
- });
- if(sort==="end")a.sort((x,y)=>localDate(x.endDate)-localDate(y.endDate));
- else if(sort==="name")a.sort((x,y)=>String(x.name).localeCompare(String(y.name)));
- else a.sort((x,y)=>(y.createdAt?.seconds||0)-(x.createdAt?.seconds||0));
- return a;
-}
-function row(x){
- const st=statusOf(x);
- return `<tr>
-  <td><b>#${x.number||"—"}</b></td>
-  <td><div class="name">${esc(x.name)}</div><div class="sub">${esc(x.phone)}</div></td>
-  <td><b>${esc(x.service)}</b></td>
-  <td><div>${esc(x.email||"—")}</div><div class="sub">${esc(x.profile||"")}</div></td>
-  <td>${money(x.amount)}</td><td>${fmtDate(x.startDate)}</td><td>${fmtDate(x.endDate)}</td>
-  <td><span class="badge ${st.key}">${st.label}</span></td>
-  <td><div class="row-actions">
-   <button class="smallbtn" onclick="editItem('${x.id}')">✏️</button>
-   <button class="smallbtn" onclick="renew('${x.id}')">🔄 +30</button>
-   <button class="smallbtn whats" onclick="wa(${JSON.stringify(x).replaceAll("'","&#39;")})">💬</button>
-   <button class="smallbtn" onclick="copyInfo('${x.id}')">📋</button>
-   <button class="smallbtn" onclick="remove('${x.id}')">🗑️</button>
-  </div></td>
- </tr>`;
-}
-function mobileCard(x){
- const st=statusOf(x);
- return `<article class="mobile-card">
-  <div class="mobile-top"><div><div class="name">#${x.number||"—"} · ${esc(x.name)}</div><div class="sub">${esc(x.phone)}</div></div><span class="badge ${st.key}">${st.label}</span></div>
-  <div class="mobile-line"><span>Serviço</span><b>${esc(x.service)}</b></div>
-  <div class="mobile-line"><span>Valor</span><b>${money(x.amount)}</b></div>
-  <div class="mobile-line"><span>E-mail</span><b>${esc(x.email||"—")}</b></div>
-  <div class="mobile-line"><span>Perfil/PIN</span><b>${esc(x.profile||"—")}</b></div>
-  <div class="mobile-line"><span>Início</span><b>${fmtDate(x.startDate)}</b></div>
-  <div class="mobile-line"><span>Término</span><b>${fmtDate(x.endDate)}</b></div>
-  <div class="row-actions" style="margin-top:12px">
-   <button class="smallbtn" onclick="editItem('${x.id}')">✏️ Editar</button>
-   <button class="smallbtn" onclick="renew('${x.id}')">🔄 +30</button>
-   <button class="smallbtn whats" onclick="wa(${JSON.stringify(x).replaceAll("'","&#39;")})">💬 Avisar</button>
-   <button class="smallbtn" onclick="copyInfo('${x.id}')">📋 Copiar</button>
-   <button class="smallbtn" onclick="remove('${x.id}')">🗑️</button>
-  </div>
- </article>`;
-}
-function renderList(){
- const a=filtered();
- $("tbody").innerHTML=a.map(row).join("");
- $("mobileList").innerHTML=a.map(mobileCard).join("");
- $("empty").style.display=a.length?"none":"block";
- if(!a.length)$("mobileList").innerHTML='<div class="empty">Nenhum resultado encontrado.</div>';
-}
-function render(){renderStats();renderRecent();renderServiceAccounts();renderList()}
+ const x=data.find(
+   a=>a.id===id
+ );
 
-/* =========================
-   FORM
-   ========================= */
-function openModal(item=null){
- $("form").reset();$("editId").value="";
- $("modalTitle").textContent=item?"Editar assinatura":"Nova assinatura";
- if(item){
-   $("editId").value=item.id;$("name").value=item.name||"";$("phone").value=item.phone||"";
-   $("service").value=item.service||"";$("amount").value=item.amount||"";$("cost").value=item.cost||"";
-   $("email").value=item.email||"";$("password").value=item.password||"";$("profile").value=item.profile||"";
-   $("start").value=item.startDate||"";$("end").value=item.endDate||"";$("notes").value=item.notes||"";
- }else{
-   const t=today(),e=new Date(t);e.setDate(e.getDate()+30);
-   $("start").value=inputDate(t);$("end").value=inputDate(e);
+
+ if(!x)return;
+
+
+ let base=
+   localDate(x.endDate)||today();
+
+
+ if(base<today())
+   base=today();
+
+
+ base.setDate(
+   base.getDate()+30
+ );
+
+
+ try{
+
+   await save({
+
+     ...x,
+
+     endDate:inputDate(base)
+
+   });
+
  }
- $("modal").classList.add("show");
-}
-function editItem(id){const x=data.find(a=>a.id===id);if(x)openModal(x)}
 
-$("form").addEventListener("submit",async e=>{
+ catch(e){
+
+   console.error(e);
+
+   alert(
+     "Erro ao renovar."
+   );
+
+ }
+
+}
+
+
+/* =========================
+   ESTATÍSTICAS
+   ========================= */
+
+function renderStats(){
+
+ const clients=
+   new Set(
+     data
+       .map(x=>phone(x.phone))
+       .filter(Boolean)
+   );
+
+
+ const st=
+   data.map(statusOf);
+
+
+ $("sClients").textContent=
+   clients.size;
+
+
+ $("sSubs").textContent=
+   data.length;
+
+
+ $("sActive").textContent=
+   st.filter(
+     x=>x.key==="active"
+   ).length;
+
+
+ $("sSoon").textContent=
+   st.filter(
+     x=>x.key==="soon"
+   ).length;
+
+
+ $("sExpired").textContent=
+   st.filter(
+     x=>x.key==="expired"
+   ).length;
+
+}
+
+
+/* =========================
+   REGISTOS RECENTES
+   ========================= */
+
+function renderRecent(){
+
+ const recent=
+   [...data]
+
+   .sort((a,b)=>{
+
+     const aa=
+       a.createdAt?.seconds||0;
+
+     const bb=
+       b.createdAt?.seconds||0;
+
+     return bb-aa;
+
+   })
+
+   .slice(0,8);
+
+
+ $("recentList").innerHTML=
+
+ recent.length
+
+ ?
+
+ recent.map(x=>`
+
+   <div class="recent-item">
+
+     <strong>
+       #${x.number||"—"} · ${esc(x.name)}
+     </strong>
+
+     <small>
+       ${esc(x.service)} · ${esc(x.phone)}
+     </small>
+
+     <br>
+
+     <small>
+       ${money(x.amount)}
+       · termina ${fmtDate(x.endDate)}
+     </small>
+
+   </div>
+
+ `).join("")
+
+ :
+
+ `<div
+    class="empty"
+    style="grid-column:1/-1"
+ >
+    Ainda não há registos recentes.
+ </div>`;
+
+}
+
+
+/* =========================
+   CONTAS POR SERVIÇO
+   ========================= */
+
+function renderServiceAccounts(){
+
+ const services=[
+
+   "Netflix",
+
+   "Prime Video",
+
+   "Spotify",
+
+   "Crunchyroll",
+
+   "Link de jogo para PC",
+
+   "Outro"
+
+ ];
+
+
+ const html=
+ services.map(service=>{
+
+   const emails=[
+
+     ...new Set(
+
+       data
+
+       .filter(
+         x=>
+           x.service===service &&
+           x.email
+       )
+
+       .map(
+         x=>x.email
+       )
+
+     )
+
+   ];
+
+
+   return `
+
+   <div class="service-card">
+
+     <h3>
+       ${esc(service)}
+     </h3>
+
+     <div class="email">
+
+       ${
+         emails.length
+         ?emails.map(esc).join("<br>")
+         :"Nenhum e-mail registado"
+       }
+
+     </div>
+
+
+     ${
+       emails.length
+
+       ?
+
+       `<button
+          class="smallbtn"
+          onclick='copyEmails(${JSON.stringify(emails)})'
+        >
+          📋 Copiar
+        </button>`
+
+       :""
+
+     }
+
+   </div>
+
+   `;
+
+ }).join("");
+
+
+ $("serviceAccounts").innerHTML=html;
+
+}
+
+
+/* =========================
+   COPIAR EMAILS
+   ========================= */
+
+function copyEmails(arr){
+
+ navigator.clipboard
+
+   .writeText(
+     arr.join("\n")
+   )
+
+   .then(
+     ()=>alert("E-mails copiados.")
+   );
+
+}
+
+
+/* =========================
+   FILTROS
+   ========================= */
+
+function filtered(){
+
+ const q=
+   $("search")
+   .value
+   .trim()
+   .toLowerCase();
+
+
+ const service=
+   $("serviceFilter").value;
+
+
+ const status=
+   $("statusFilter").value;
+
+
+ const sort=
+   $("sortFilter").value;
+
+
+ let a=
+   data.filter(x=>{
+
+     const text=[
+
+       x.name,
+
+       x.phone,
+
+       x.email,
+
+       x.service,
+
+       x.profile
+
+     ]
+
+     .join(" ")
+     .toLowerCase();
+
+
+     return (
+
+       (!q||text.includes(q))
+
+       &&
+
+       (!service||
+        x.service===service)
+
+       &&
+
+       (!status||
+        statusOf(x).key===status)
+
+     );
+
+   });
+
+
+ if(sort==="end"){
+
+   a.sort(
+     (x,y)=>
+       localDate(x.endDate)-
+       localDate(y.endDate)
+   );
+
+ }
+
+
+ else if(sort==="name"){
+
+   a.sort(
+     (x,y)=>
+       String(x.name)
+       .localeCompare(
+         String(y.name)
+       )
+   );
+
+ }
+
+
+ else{
+
+   a.sort(
+     (x,y)=>
+       (y.createdAt?.seconds||0)-
+       (x.createdAt?.seconds||0)
+   );
+
+ }
+
+
+ return a;
+
+}
+
+
+/* =========================
+   LINHA
+   ========================= */
+
+function row(x){
+
+ const st=statusOf(x);
+
+
+ return `
+
+ <tr>
+
+   <td>
+     <b>
+       #${x.number||"—"}
+     </b>
+   </td>
+
+
+   <td>
+
+     <div class="name">
+       ${esc(x.name)}
+     </div>
+
+     <div class="sub">
+       ${esc(x.phone)}
+     </div>
+
+   </td>
+
+
+   <td>
+     <b>
+       ${esc(x.service)}
+     </b>
+   </td>
+
+
+   <td>
+
+     <div>
+       ${esc(x.email||"—")}
+     </div>
+
+     <div class="sub">
+       ${esc(x.profile||"")}
+     </div>
+
+   </td>
+
+
+   <td>
+     ${money(x.amount)}
+   </td>
+
+
+   <td>
+     ${fmtDate(x.startDate)}
+   </td>
+
+
+   <td>
+     ${fmtDate(x.endDate)}
+   </td>
+
+
+   <td>
+
+     <span class="badge ${st.key}">
+       ${st.label}
+     </span>
+
+   </td>
+
+
+   <td>
+
+     <div class="row-actions">
+
+       <button
+         class="smallbtn"
+         onclick="editItem('${x.id}')"
+       >
+         ✏️
+       </button>
+
+
+       <button
+         class="smallbtn"
+         onclick="renew('${x.id}')"
+       >
+         🔄 +30
+       </button>
+
+
+       <button
+         class="smallbtn whats"
+         onclick='wa(${JSON.stringify(x)})'
+       >
+         💬
+       </button>
+
+
+       <button
+         class="smallbtn"
+         onclick="copyInfo('${x.id}')"
+       >
+         📋
+       </button>
+
+
+       <button
+         class="smallbtn"
+         onclick="remove('${x.id}')"
+       >
+         🗑️
+       </button>
+
+     </div>
+
+   </td>
+
+ </tr>
+
+ `;
+
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+
+function mobileCard(x){
+
+ const st=statusOf(x);
+
+
+ return `
+
+ <article class="mobile-card">
+
+   <div class="mobile-top">
+
+     <div>
+
+       <div class="name">
+
+         #${x.number||"—"} ·
+         ${esc(x.name)}
+
+       </div>
+
+       <div class="sub">
+         ${esc(x.phone)}
+       </div>
+
+     </div>
+
+
+     <span class="badge ${st.key}">
+       ${st.label}
+     </span>
+
+   </div>
+
+
+   <div class="mobile-line">
+
+     <span>
+       Serviço
+     </span>
+
+     <b>
+       ${esc(x.service)}
+     </b>
+
+   </div>
+
+
+   <div class="mobile-line">
+
+     <span>
+       Valor
+     </span>
+
+     <b>
+       ${money(x.amount)}
+     </b>
+
+   </div>
+
+
+   <div class="mobile-line">
+
+     <span>
+       E-mail
+     </span>
+
+     <b>
+       ${esc(x.email||"—")}
+     </b>
+
+   </div>
+
+
+   <div class="mobile-line">
+
+     <span>
+       Perfil/PIN
+     </span>
+
+     <b>
+       ${esc(x.profile||"—")}
+     </b>
+
+   </div>
+
+
+   <div class="mobile-line">
+
+     <span>
+       Início
+     </span>
+
+     <b>
+       ${fmtDate(x.startDate)}
+     </b>
+
+   </div>
+
+
+   <div class="mobile-line">
+
+     <span>
+       Término
+     </span>
+
+     <b>
+       ${fmtDate(x.endDate)}
+     </b>
+
+   </div>
+
+
+   <div
+     class="row-actions"
+     style="margin-top:12px"
+   >
+
+     <button
+       class="smallbtn"
+       onclick="editItem('${x.id}')"
+     >
+       ✏️ Editar
+     </button>
+
+
+     <button
+       class="smallbtn"
+       onclick="renew('${x.id}')"
+     >
+       🔄 +30
+     </button>
+
+
+     <button
+       class="smallbtn whats"
+       onclick='wa(${JSON.stringify(x)})'
+     >
+       💬 Avisar
+     </button>
+
+
+     <button
+       class="smallbtn"
+       onclick="copyInfo('${x.id}')"
+     >
+       📋 Copiar
+     </button>
+
+
+     <button
+       class="smallbtn"
+       onclick="remove('${x.id}')"
+     >
+       🗑️
+     </button>
+
+   </div>
+
+ </article>
+
+ `;
+
+}
+
+
+/* =========================
+   RENDER LISTA
+   ========================= */
+
+function renderList(){
+
+ const a=filtered();
+
+
+ $("tbody").innerHTML=
+   a.map(row).join("");
+
+
+ $("mobileList").innerHTML=
+   a.map(mobileCard).join("");
+
+
+ $("empty").style.display=
+   a.length
+   ?"none"
+   :"block";
+
+
+ if(!a.length){
+
+   $("mobileList").innerHTML=
+     '<div class="empty">Nenhum resultado encontrado.</div>';
+
+ }
+
+}
+
+
+/* =========================
+   RENDER GERAL
+   ========================= */
+
+function render(){
+
+ renderStats();
+
+ renderRecent();
+
+ renderServiceAccounts();
+
+ renderList();
+
+}
+
+
+/* =========================
+   MODAL
+   ========================= */
+
+function openModal(item=null){
+
+ $("form").reset();
+
+ $("editId").value="";
+
+ $("modalTitle").textContent=
+   item
+   ?"Editar assinatura"
+   :"Nova assinatura";
+
+
+ if(item){
+
+   $("editId").value=
+     item.id;
+
+   $("name").value=
+     item.name||"";
+
+   $("phone").value=
+     item.phone||"";
+
+   $("service").value=
+     item.service||"";
+
+   $("amount").value=
+     item.amount||"";
+
+   $("cost").value=
+     item.cost||"";
+
+   $("email").value=
+     item.email||"";
+
+   $("password").value=
+     item.password||"";
+
+   $("profile").value=
+     item.profile||"";
+
+   $("start").value=
+     item.startDate||"";
+
+   $("end").value=
+     item.endDate||"";
+
+   $("notes").value=
+     item.notes||"";
+
+ }
+
+
+ else{
+
+   const t=today();
+
+   const e=new Date(t);
+
+   e.setDate(
+     e.getDate()+30
+   );
+
+
+   $("start").value=
+     inputDate(t);
+
+
+   $("end").value=
+     inputDate(e);
+
+ }
+
+
+ $("modal").classList.add("show");
+
+}
+
+
+function editItem(id){
+
+ const x=data.find(
+   a=>a.id===id
+ );
+
+ if(x)
+   openModal(x);
+
+}
+
+
+/* =========================
+   FORM SUBMIT
+   ========================= */
+
+$("form").addEventListener(
+"submit",
+async e=>{
+
  e.preventDefault();
+
+
  const item={
-   id:$("editId").value||"",
-   name:$("name").value.trim(),phone:$("phone").value.trim(),service:$("service").value,
-   amount:Number($("amount").value||0),cost:Number($("cost").value||0),email:$("email").value.trim(),
-   password:$("password").value,profile:$("profile").value.trim(),startDate:$("start").value,
-   endDate:$("end").value,notes:$("notes").value.trim()
+
+   id:
+     $("editId").value||"",
+
+   name:
+     $("name").value.trim(),
+
+   phone:
+     $("phone").value.trim(),
+
+   service:
+     $("service").value,
+
+   amount:
+     Number(
+       $("amount").value||0
+     ),
+
+   cost:
+     Number(
+       $("cost").value||0
+     ),
+
+   email:
+     $("email").value.trim(),
+
+   password:
+     $("password").value,
+
+   profile:
+     $("profile").value.trim(),
+
+   startDate:
+     $("start").value,
+
+   endDate:
+     $("end").value,
+
+   notes:
+     $("notes").value.trim()
+
  };
- if(localDate(item.endDate)<localDate(item.startDate)){alert("A data de término não pode ser anterior à data de início.");return}
- try{await save(item);$("modal").classList.remove("show")}
- catch(err){console.error(err);alert("Não foi possível guardar no Firebase.")}
+
+
+ if(
+   localDate(item.endDate) <
+   localDate(item.startDate)
+ ){
+
+   alert(
+     "A data de término não pode ser anterior à data de início."
+   );
+
+   return;
+
+ }
+
+
+ try{
+
+   await save(item);
+
+   $("modal")
+     .classList
+     .remove("show");
+
+ }
+
+ catch(err){
+
+   console.error(err);
+
+   alert(
+     "Não foi possível guardar no Firebase."
+   );
+
+ }
+
 });
 
-$("addBtn").onclick=()=>openModal();
-$("closeModal").onclick=()=>$("modal").classList.remove("show");
-$("cancelBtn").onclick=()=>$("modal").classList.remove("show");
-$("modal").onclick=e=>{if(e.target===$("modal"))$("modal").classList.remove("show")};
-$("search").oninput=renderList;$("serviceFilter").onchange=renderList;$("statusFilter").onchange=renderList;$("sortFilter").onchange=renderList;
-$("clearBtn").onclick=()=>{$("search").value="";$("serviceFilter").value="";$("statusFilter").value="";$("sortFilter").value="new";renderList()};
 
 /* =========================
-   TEMA / LOGIN
+   BOTÕES
    ========================= */
+
+$("addBtn").onclick=
+ ()=>openModal();
+
+
+$("closeModal").onclick=
+ ()=>
+   $("modal")
+   .classList
+   .remove("show");
+
+
+$("cancelBtn").onclick=
+ ()=>
+   $("modal")
+   .classList
+   .remove("show");
+
+
+$("modal").onclick=
+ e=>{
+
+   if(e.target===$("modal")){
+
+     $("modal")
+       .classList
+       .remove("show");
+
+   }
+
+ };
+
+
+/* =========================
+   PESQUISA
+   ========================= */
+
+$("search").oninput=
+ renderList;
+
+
+$("serviceFilter").onchange=
+ renderList;
+
+
+$("statusFilter").onchange=
+ renderList;
+
+
+$("sortFilter").onchange=
+ renderList;
+
+
+$("clearBtn").onclick=()=>{
+
+ $("search").value="";
+
+ $("serviceFilter").value="";
+
+ $("statusFilter").value="";
+
+ $("sortFilter").value="new";
+
+ renderList();
+
+};
+
+
+/* =========================
+   TEMA
+   ========================= */
+
 function theme(){
- const dark=localStorage.getItem("theme")==="dark";
- document.body.classList.toggle("dark",dark);
- $("themeBtn").textContent=dark?"☀️ Modo claro":"🌙 Modo escuro";
+
+ const dark=
+   localStorage.getItem("theme")==="dark";
+
+
+ document.body.classList.toggle(
+   "dark",
+   dark
+ );
+
+
+ $("themeBtn").textContent=
+   dark
+   ?"☀️ Modo claro"
+   :"🌙 Modo escuro";
+
 }
+
+
 $("themeBtn").onclick=()=>{
- const dark=!document.body.classList.contains("dark");
- localStorage.setItem("theme",dark?"dark":"light");theme();
+
+ const dark=
+   !document.body.classList.contains("dark");
+
+
+ localStorage.setItem(
+   "theme",
+   dark
+   ?"dark"
+   :"light"
+ );
+
+
+ theme();
+
 };
+
+
+/* =========================
+   LOGIN
+   ========================= */
+
 $("loginForm").onsubmit=e=>{
+
  e.preventDefault();
- if($("loginEmail").value.trim()===LOGIN_EMAIL&&$("loginPass").value===LOGIN_PASSWORD){
-   sessionStorage.setItem(SESSION_KEY,"1");$("loginScreen").classList.add("hide");$("loginError").classList.remove("show");
- }else $("loginError").classList.add("show");
+
+
+ if(
+
+   $("loginEmail").value.trim()
+   ===LOGIN_EMAIL
+
+   &&
+
+   $("loginPass").value
+   ===LOGIN_PASSWORD
+
+ ){
+
+   sessionStorage.setItem(
+     SESSION_KEY,
+     "1"
+   );
+
+
+   $("loginScreen")
+     .classList
+     .add("hide");
+
+
+   $("loginError")
+     .classList
+     .remove("show");
+
+ }
+
+ else{
+
+   $("loginError")
+     .classList
+     .add("show");
+
+ }
+
 };
-$("logoutBtn").onclick=()=>{sessionStorage.removeItem(SESSION_KEY);$("loginScreen").classList.remove("hide");$("loginEmail").focus()};
+
+
+/* =========================
+   LOGOUT
+   ========================= */
+
+$("logoutBtn").onclick=()=>{
+
+ sessionStorage.removeItem(
+   SESSION_KEY
+ );
+
+
+ $("loginScreen")
+   .classList
+   .remove("hide");
+
+
+ $("loginEmail").focus();
+
+};
+
+
+/* =========================
+   INICIAR
+   ========================= */
 
 theme();
-if(sessionStorage.getItem(SESSION_KEY)==="1")$("loginScreen").classList.add("hide");
+
+
+if(
+ sessionStorage.getItem(
+   SESSION_KEY
+ )==="1"
+){
+
+ $("loginScreen")
+   .classList
+   .add("hide");
+
+}
+
+
 sync();
+
 </script>
+
 </body>
 </html>
