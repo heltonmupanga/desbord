@@ -161,7 +161,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr auto;
+      grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(130px, 1fr)) auto;
       gap: 12px;
       padding: 16px;
       border-bottom: 1px solid var(--border);
@@ -374,6 +374,70 @@
       grid-column: 1 / -1;
     }
 
+    .field-hidden { display: none !important; }
+
+    .filters label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .accounts-panel {
+      margin-top: 18px;
+      padding: 20px;
+    }
+
+    .accounts-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .accounts-head h2 { margin: 0 0 5px; font-size: 20px; }
+    .accounts-head p { margin: 0; color: var(--muted); font-size: 13px; }
+    .service-group { margin-top: 18px; }
+    .service-group h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+    .account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .account-card {
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card-soft);
+    }
+    .account-card-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .account-email { overflow-wrap:anywhere; font-weight:800; }
+    .account-profiles { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+    .profile-chip { padding:4px 8px; border-radius:999px; background:var(--card); border:1px solid var(--border); font-size:12px; }
+    .account-subscriptions { display:grid; gap:6px; color:var(--muted); font-size:12px; }
+    .account-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .account-toolbar .btn { padding:8px 10px; font-size:12px; }
+    .account-duplicate { color:var(--warning); font-size:12px; font-weight:700; }
+    .toast {
+      position:fixed; left:50%; bottom:22px; z-index:5000;
+      transform:translate(-50%, 18px); opacity:0; pointer-events:none;
+      max-width:calc(100% - 24px); padding:11px 16px; border-radius:10px;
+      background:#172b21; color:#fff; font-size:14px; font-weight:700;
+      box-shadow:var(--shadow); transition:.2s;
+    }
+    .toast.show { opacity:1; transform:translate(-50%, 0); }
+    .copy-modal-card { width:min(680px, 100%); }
+    .copy-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:9px; margin-top:12px; }
+    .copy-help { margin:0 0 12px; color:var(--muted); font-size:13px; }
+    .inline-actions { display:flex; gap:6px; margin-top:6px; }
+    .inline-actions .btn { padding:7px 9px; font-size:12px; }
+    .field-hint { margin-top:6px; color:var(--muted); font-size:12px; }
+
     .password-row {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -451,6 +515,8 @@
       .form-grid {
         grid-template-columns: 1fr;
       }
+
+      .account-grid { grid-template-columns: 1fr; }
 
       .field.full {
         grid-column: auto;
@@ -604,7 +670,7 @@
     <div class="login-box">
       <div class="login-logo">🔐</div>
       <h2>Entrar no painel</h2>
-      <p>Use o e-mail e a palavra-passe definidos no código para abrir a gestão de assinaturas.</p>
+      <p>Introduza as credenciais de acesso para abrir a gestão de assinaturas.</p>
 
       <form id="loginForm">
         <div class="login-field">
@@ -636,7 +702,7 @@
       <div>
         <h1>📺 Gestão de Assinaturas</h1>
         <p>Clientes, serviços, credenciais e datas num único lugar.</p>
-        <small id="firebaseStatus" style="display:block;margin-top:6px;color:var(--muted);">☁️ A ligar ao Firebase...</small>
+        <small id="databaseStatus" style="display:block;margin-top:6px;color:var(--muted);">🔒 Entre para carregar os dados...</small>
       </div>
 
       <div class="top-actions">
@@ -691,6 +757,14 @@
           <option>Outro</option>
         </select>
 
+        <select id="emailFilter" aria-label="Filtrar por e-mail">
+          <option value="">Todos os e-mails</option>
+        </select>
+
+        <select id="clientFilter" aria-label="Filtrar por cliente">
+          <option value="">Todos os clientes</option>
+        </select>
+
         <select id="statusFilter">
           <option value="">Todos os estados</option>
           <option value="active">Ativas</option>
@@ -727,8 +801,19 @@
       <div class="mobile-list" id="mobileList"></div>
     </section>
 
+    <section class="panel accounts-panel" aria-labelledby="accountsTitle">
+      <div class="accounts-head">
+        <div>
+          <h2 id="accountsTitle">Contas por serviço e e-mail</h2>
+          <p>Contas agrupadas sem misturar serviços, perfis ou clientes.</p>
+        </div>
+        <span class="badge active" id="accountCount">0 contas</span>
+      </div>
+      <div id="accountsList"></div>
+    </section>
+
     <p class="footer-note">
-      Os dados ficam guardados no Firebase e sincronizados entre PC e celular.
+      Os dados ficam guardados no Cloud Firestore e podem ser consultados em outros dispositivos após iniciar sessão.
     </p>
   </main>
 
@@ -765,6 +850,22 @@
             </select>
           </div>
 
+          <div class="field field-hidden" id="otherServiceField">
+            <label for="otherServiceName">Nome do serviço *</label>
+            <input id="otherServiceName" placeholder="Ex.: Disney+" />
+          </div>
+
+          <div class="field full">
+            <label for="existingAccount">Usar dados de uma conta já registada</label>
+            <select id="existingAccount">
+              <option value="">Selecionar uma assinatura existente (opcional)</option>
+            </select>
+            <div class="inline-actions">
+              <button class="btn btn-light" id="useExistingAccountBtn" type="button">Usar os dados selecionados</button>
+            </div>
+            <div class="field-hint" id="existingAccountHint">Os dados só serão preenchidos depois de carregar no botão; nada será substituído em silêncio.</div>
+          </div>
+
           <div class="field">
             <label for="amount">Valor pago (MT)</label>
             <input id="amount" type="number" min="0" step="0.01" />
@@ -772,10 +873,15 @@
 
           <div class="field">
             <label for="accountEmail">E-mail da conta</label>
-            <input id="accountEmail" type="email" />
+            <input id="accountEmail" type="email" list="knownEmails" autocomplete="email" />
+            <datalist id="knownEmails"></datalist>
+            <div class="field-hint" id="emailMatchesHint" aria-live="polite"></div>
+            <div class="inline-actions">
+              <button class="btn btn-light" id="copyEmailBtn" type="button">▣ Copiar e-mail</button>
+            </div>
           </div>
 
-          <div class="field">
+          <div class="field" id="passwordField">
             <label for="accountPassword">Palavra-passe</label>
 
             <div class="password-row">
@@ -784,11 +890,34 @@
                 Mostrar
               </button>
             </div>
+            <div class="inline-actions">
+              <button class="btn btn-light" id="copyPasswordBtn" type="button">▣ Copiar palavra-passe</button>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="profileName">Perfil / PIN</label>
-            <input id="profileName" placeholder="Ex.: Perfil 2 / PIN 1234" />
+          <div class="field" id="profileField">
+            <label for="profileName">Perfil</label>
+            <input id="profileName" placeholder="Ex.: Perfil 2" />
+          </div>
+
+          <div class="field" id="pinField">
+            <label for="accountPin">PIN (se existir)</label>
+            <input id="accountPin" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field field-hidden" id="addressField">
+            <label for="accountAddress">Endereço associado à conta</label>
+            <input id="accountAddress" autocomplete="street-address" />
+          </div>
+
+          <div class="field field-hidden" id="extraLabelField">
+            <label for="accountExtraLabel">Nome de outro dado</label>
+            <input id="accountExtraLabel" placeholder="Ex.: Utilizador, código..." />
+          </div>
+
+          <div class="field field-hidden" id="extraValueField">
+            <label for="accountExtraValue">Outro dado da conta</label>
+            <input id="accountExtraValue" />
           </div>
 
           <div class="field">
@@ -808,6 +937,7 @@
         </div>
 
         <div class="modal-footer">
+          <button class="btn btn-light" type="button" id="copyFormDataBtn">▣ Copiar dados</button>
           <button class="btn btn-light" type="button" id="cancelBtn">
             Cancelar
           </button>
@@ -820,40 +950,63 @@
     </div>
   </div>
 
+  <div class="modal" id="copyModal" style="z-index:1100;">
+    <div class="modal-card copy-modal-card">
+      <div class="modal-head">
+        <h2>Mensagem para o cliente</h2>
+        <button class="close" id="closeCopyModalBtn" type="button" aria-label="Fechar">×</button>
+      </div>
+      <div style="padding:20px;">
+        <p class="copy-help">Revise ou edite a mensagem. O WhatsApp abrirá com o texto preenchido; o envio só acontece quando confirmar lá.</p>
+        <textarea id="shareMessage" rows="14" aria-label="Mensagem a copiar ou enviar"></textarea>
+        <div class="copy-actions">
+          <button class="btn btn-light" type="button" id="cancelCopyBtn">Fechar</button>
+          <button class="btn btn-light" type="button" id="copyMessageBtn">▣ Copiar mensagem</button>
+          <button class="btn btn-whatsapp" type="button" id="sendMessageBtn">Abrir WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+    import {
+      addDoc,
+      collection,
+      deleteDoc,
+      doc,
+      getFirestore,
+      onSnapshot,
+      serverTimestamp,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
     const firebaseConfig = {
-      apiKey: "AIzaSyD0A3F-5JkTwr1ewspw0mxFQAZCjmB75MM",
-      authDomain: "shelcia-bedc0.firebaseapp.com",
-      projectId: "shelcia-bedc0",
-      storageBucket: "shelcia-bedc0.firebasestorage.app",
-      messagingSenderId: "1005119493894",
-      appId: "1:1005119493894:web:2160fe086f593843677087",
-      measurementId: "G-5M373W0JMM"
+      apiKey: "AIzaSyBbMbD4afVyI3FzGQfAC2igcU4jZCcyH8s",
+      authDomain: "coringabot-287c8.firebaseapp.com",
+      projectId: "coringabot-287c8",
+      storageBucket: "coringabot-287c8.firebasestorage.app",
+      messagingSenderId: "841296204544",
+      appId: "1:841296204544:web:90b36a98b92d59f22419e5",
+      measurementId: "G-GV930T7BF2"
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-
-    window.db = firebase.firestore();
-    window.authFirebase = firebase.auth();
-
-    console.log("✅ Firebase conectado:", firebaseConfig.projectId);
-  </script>
-
-
-  <script>
-
-    const LOGIN_EMAIL = "coringa@gmail.com";
-    const LOGIN_PASSWORD = "871152";
-    const LOGIN_SESSION_KEY = "gestao_assinaturas_logado";
-
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
     const COLLECTION_NAME = "assinaturas";
+
+    
+
+    
     const THEME_KEY = "gestao_assinaturas_tema";
 
     const $ = (selector) => document.querySelector(selector);
@@ -882,113 +1035,97 @@
     };
 
     let subscriptions = [];
-    let unsubscribeFirestore = null;
+    let unsubscribeSubscriptions = null;
 
-
-    function checkLogin() {
-      const loggedIn = sessionStorage.getItem(LOGIN_SESSION_KEY) === "true";
-      els.loginScreen.classList.toggle("hidden", loggedIn);
+    function setDatabaseStatus(message) {
+      const statusEl = document.querySelector("#databaseStatus");
+      if (statusEl) statusEl.textContent = message;
     }
 
-    function login(email, password) {
-      if (email === LOGIN_EMAIL && password === LOGIN_PASSWORD) {
-        sessionStorage.setItem(LOGIN_SESSION_KEY, "true");
-        els.loginError.classList.remove("show");
-        els.loginScreen.classList.add("hidden");
-        return true;
+    function stopFirestoreSync() {
+      if (unsubscribeSubscriptions) {
+        unsubscribeSubscriptions();
+        unsubscribeSubscriptions = null;
       }
-
-      els.loginError.classList.add("show");
-      return false;
-    }
-
-    function logout() {
-      sessionStorage.removeItem(LOGIN_SESSION_KEY);
-      $("#loginEmail").value = "";
-      $("#loginPassword").value = "";
-      els.loginScreen.classList.remove("hidden");
-      $("#loginEmail").focus();
-    }
-
-    function getDatabase() {
-      if (!window.firebase || !firebase.apps.length) {
-        throw new Error(
-          "Firebase não foi inicializado. Atualize a página e confirme a ligação à internet."
-        );
-      }
-
-      return window.db || firebase.firestore();
     }
 
     function startFirestoreSync() {
-      try {
-        const database = getDatabase();
+      stopFirestoreSync();
+      setDatabaseStatus("☁️ A carregar dados do Firestore...");
 
-        if (unsubscribeFirestore) {
-          unsubscribeFirestore();
+      unsubscribeSubscriptions = onSnapshot(
+        collection(db, COLLECTION_NAME),
+        snapshot => {
+          subscriptions = snapshot.docs.map(snapshotDoc => ({
+            id: snapshotDoc.id,
+            ...snapshotDoc.data()
+          }));
+          setDatabaseStatus("☁️ Firestore sincronizado");
+          render();
+        },
+        error => {
+          console.error("Erro ao carregar assinaturas:", error);
+          setDatabaseStatus("⚠️ Erro ao carregar o Firestore");
+          alert("Não foi possível carregar as assinaturas. Confirme as regras do Firestore e tente novamente.");
         }
-
-        unsubscribeFirestore = database
-          .collection(COLLECTION_NAME)
-          .onSnapshot(
-            snapshot => {
-              subscriptions = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-              }));
-
-              const statusEl = document.querySelector("#firebaseStatus");
-              if (statusEl) statusEl.textContent = "☁️ Firebase sincronizado";
-              render();
-            },
-            error => {
-              console.error("Erro ao carregar assinaturas:", error);
-              const statusEl = document.querySelector("#firebaseStatus");
-              if (statusEl) statusEl.textContent = "⚠️ Erro na ligação ao Firebase";
-              alert(
-                "Não foi possível carregar os dados do Firebase. Verifique as regras do Firestore e a ligação à internet."
-              );
-            }
-          );
-      } catch (error) {
-        console.error(error);
-        alert(error.message);
-      }
+      );
     }
 
     async function saveSubscriptionToFirestore(item) {
-      const database = getDatabase();
-      const data = { ...item };
-      delete data.id;
+      const { id, ...data } = item;
+      data.updatedAt = serverTimestamp();
 
-      if (item.id) {
-        await database
-          .collection(COLLECTION_NAME)
-          .doc(item.id)
-          .set(data, { merge: true });
-
-        return item.id;
+      if (id) {
+        await setDoc(doc(db, COLLECTION_NAME, id), data, { merge: true });
+        return id;
       }
 
-      const reference = await database
-        .collection(COLLECTION_NAME)
-        .add({
-          ...data,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
+      const reference = await addDoc(collection(db, COLLECTION_NAME), {
+        ...data,
+        createdAt: serverTimestamp()
+      });
       return reference.id;
     }
 
     async function deleteSubscriptionFromFirestore(id) {
-      const database = getDatabase();
-
-      await database
-        .collection(COLLECTION_NAME)
-        .doc(id)
-        .delete();
+      await deleteDoc(doc(db, COLLECTION_NAME, id));
     }
 
+    function authErrorMessage(error) {
+      if (["auth/invalid-credential", "auth/invalid-login-credentials", "auth/user-not-found", "auth/wrong-password"].includes(error.code)) {
+        return "E-mail ou palavra-passe incorretos.";
+      }
+      if (error.code === "auth/too-many-requests") {
+        return "Muitas tentativas. Aguarde um pouco e tente novamente.";
+      }
+      if (error.code === "auth/operation-not-allowed") {
+        return "Ative o método E-mail/palavra-passe no Firebase Authentication.";
+      }
+      return "Não foi possível iniciar sessão. Confirme a configuração do Firebase e tente novamente.";
+    }
+
+    async function login(email, password) {
+      els.loginError.classList.remove("show");
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        console.error("Erro no login:", error);
+        els.loginError.textContent = authErrorMessage(error);
+        els.loginError.classList.add("show");
+      }
+    }
+
+    async function logout() {
+      try {
+        await signOut(auth);
+        $("#loginEmail").value = "";
+        $("#loginPassword").value = "";
+        $("#loginEmail").focus();
+      } catch (error) {
+        console.error("Erro ao terminar sessão:", error);
+        alert("Não foi possível terminar a sessão. Tente novamente.");
+      }
+    }
     function loadTheme() {
       const savedTheme = localStorage.getItem(THEME_KEY);
 
@@ -1153,7 +1290,7 @@
         statuses.filter(status => status.key === "expired").length;
     }
 
-    function getFilteredSubscriptions() {
+    function getFilteredSubscriptionsLegacy() {
       const search = els.search.value.trim().toLowerCase();
       const service = els.serviceFilter.value;
       const status = els.statusFilter.value;
@@ -1184,7 +1321,7 @@
         );
     }
 
-    function renderTable() {
+    function renderTableLegacy() {
       const filtered = getFilteredSubscriptions();
 
       els.body.innerHTML = filtered.map(item => {
@@ -1332,12 +1469,12 @@
       }
     }
 
-    function render() {
+    function renderLegacy() {
       renderDashboard();
       renderTable();
     }
 
-    function openModal(item = null) {
+    function openModalLegacy(item = null) {
       els.form.reset();
       els.editId.value = "";
 
@@ -1414,7 +1551,7 @@
         closeModal();
       } catch (error) {
         console.error("Erro ao guardar:", error);
-        alert("Não foi possível guardar a assinatura no Firebase.");
+        alert("Não foi possível guardar a assinatura no Firestore.");
       }
     });
 
@@ -1534,10 +1671,434 @@
 
     els.logoutBtn.addEventListener("click", logout);
 
-    checkLogin();
+    // New helpers for account organization and deliberate reuse of saved data.
+    let toastTimer;
+    let copyContextItem = null;
+
+    function showToast(message) {
+      const toast = $("#toast");
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function normalize(value) {
+      return String(value || "").trim().toLocaleLowerCase();
+    }
+
+    function displayService(item) {
+      return item && item.service === "Outro" && item.serviceName
+        ? String(item.serviceName).trim()
+        : String((item && item.service) || "Outro");
+    }
+
+    function formItem() {
+      return {
+        id: els.editId.value || "",
+        clientName: $("#clientName").value.trim(),
+        clientPhone: $("#clientPhone").value.trim(),
+        service: $("#service").value,
+        serviceName: $("#service").value === "Outro" ? $("#otherServiceName").value.trim() : "",
+        amount: $("#amount").value,
+        accountEmail: $("#accountEmail").value.trim(),
+        accountPassword: $("#accountPassword").value,
+        profileName: $("#profileName").value.trim(),
+        accountPin: $("#accountPin").value.trim(),
+        accountAddress: $("#accountAddress").value.trim(),
+        accountExtraLabel: $("#accountExtraLabel").value.trim(),
+        accountExtraValue: $("#accountExtraValue").value.trim(),
+        startDate: $("#startDate").value,
+        endDate: $("#endDate").value,
+        notes: $("#notes").value.trim()
+      };
+    }
+
+    function setServiceFields() {
+      const service = $("#service").value;
+      const spotify = service === "Spotify";
+      const other = service === "Outro";
+      $("#otherServiceField").classList.toggle("field-hidden", !other);
+      $("#addressField").classList.toggle("field-hidden", !spotify);
+      $("#profileField").classList.toggle("field-hidden", spotify || other);
+      $("#pinField").classList.toggle("field-hidden", !(service === "Netflix" || service === "Prime Video"));
+      const hasExtra = spotify || service === "Crunchyroll" || other;
+      $("#extraLabelField").classList.toggle("field-hidden", !hasExtra);
+      $("#extraValueField").classList.toggle("field-hidden", !hasExtra);
+      $("#accountPassword").placeholder = spotify ? "Opcional" : "";
+      $("#otherServiceName").required = other;
+    }
+
+    function updateAccountSuggestions() {
+      const emails = Array.from(new Set(subscriptions.map(item => String(item.accountEmail || "").trim()).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b, "pt"));
+      $("#knownEmails").innerHTML = emails.map(email => '<option value="' + escapeHtml(email) + '"></option>').join("");
+      const email = normalize($("#accountEmail").value);
+      const matches = subscriptions.filter(item => email && normalize(item.accountEmail) === email);
+      const hint = $("#emailMatchesHint");
+      if (!matches.length) {
+        hint.textContent = email ? "Nenhuma assinatura encontrada para este e-mail." : "";
+        return;
+      }
+      const summary = new Map();
+      matches.forEach(item => summary.set(displayService(item), (summary.get(displayService(item)) || 0) + 1));
+      const profiles = Array.from(new Set(matches.map(item => item.profileName).filter(Boolean)));
+      hint.textContent = "Este e-mail já aparece em: " + Array.from(summary.entries()).map(pair => pair[0] + " (" + pair[1] + ")").join(", ")
+        + (profiles.length ? ". Perfis: " + profiles.join(", ") : "") + ". Escolha uma assinatura acima para preencher os dados.";
+    }
+
+    function updateFilterChoices() {
+      const keepService = els.serviceFilter.value;
+      const keepEmail = $("#emailFilter").value;
+      const keepClient = $("#clientFilter").value;
+      const services = Array.from(new Set(subscriptions.map(displayService).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt"));
+      const emails = Array.from(new Set(subscriptions.map(item => String(item.accountEmail || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt"));
+      const clients = Array.from(new Set(subscriptions.map(item => String(item.clientName || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt"));
+      els.serviceFilter.innerHTML = '<option value="">Todos os serviços</option>' + services.map(value => '<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</option>').join("");
+      $("#emailFilter").innerHTML = '<option value="">Todos os e-mails</option>' + emails.map(value => '<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</option>').join("");
+      $("#clientFilter").innerHTML = '<option value="">Todos os clientes</option>' + clients.map(value => '<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</option>').join("");
+      if (services.includes(keepService)) els.serviceFilter.value = keepService;
+      if (emails.includes(keepEmail)) $("#emailFilter").value = keepEmail;
+      if (clients.includes(keepClient)) $("#clientFilter").value = keepClient;
+
+      const keepAccount = $("#existingAccount").value;
+      const rows = subscriptions.filter(item => String(item.accountEmail || "").trim()).slice().sort((a, b) =>
+        displayService(a).localeCompare(displayService(b), "pt") || String(a.accountEmail).localeCompare(String(b.accountEmail), "pt")
+      );
+      $("#existingAccount").innerHTML = '<option value="">Selecionar uma assinatura existente (opcional)</option>' + rows.map(item => {
+        const detail = [item.profileName, item.clientName].filter(Boolean).join(" · ");
+        return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(displayService(item) + " · " + item.accountEmail + (detail ? " · " + detail : "")) + '</option>';
+      }).join("");
+      if (rows.some(item => item.id === keepAccount)) $("#existingAccount").value = keepAccount;
+    }
+
+    function getFilteredSubscriptions() {
+      const search = els.search.value.trim().toLocaleLowerCase();
+      const service = els.serviceFilter.value;
+      const email = $("#emailFilter").value;
+      const client = $("#clientFilter").value;
+      const status = els.statusFilter.value;
+      return subscriptions.filter(item => {
+        const values = [item.clientName, item.clientPhone, item.accountEmail, displayService(item), item.profileName,
+          item.accountPin, item.accountAddress, item.accountExtraLabel, item.accountExtraValue].join(" ").toLocaleLowerCase();
+        return (!search || values.includes(search)) && (!service || displayService(item) === service)
+          && (!email || String(item.accountEmail || "") === email) && (!client || String(item.clientName || "") === client)
+          && (!status || getStatus(item).key === status);
+      }).sort((a, b) => parseLocalDate(a.endDate) - parseLocalDate(b.endDate));
+    }
+
+    function renderTable() {
+      const filtered = getFilteredSubscriptions();
+      els.body.innerHTML = filtered.map(item => {
+        const status = getStatus(item);
+        const credentials = item.accountEmail || item.profileName
+          ? '<div>' + escapeHtml(item.accountEmail || "Sem e-mail") + '</div><div class="sub">' + escapeHtml(item.profileName || "Sem perfil registado") + '</div>' : "—";
+        const amount = item.amount && Number(item.amount) > 0 ? Number(item.amount).toLocaleString("pt-PT") + " MT" : "—";
+        return '<tr><td><div class="client-name">' + escapeHtml(item.clientName || "—") + '</div><div class="sub">' + escapeHtml(item.clientPhone || "") + '</div></td>'
+          + '<td>' + escapeHtml(displayService(item)) + '</td><td>' + credentials + '</td><td>' + amount + '</td><td>' + formatDate(item.startDate) + '</td><td>' + formatDate(item.endDate) + '</td>'
+          + '<td><span class="badge ' + status.key + '">' + escapeHtml(status.label) + '</span></td><td><div class="actions">'
+          + '<button class="icon-btn" onclick="editSubscription(\'' + escapeHtml(item.id) + '\')">✏️ Editar</button>'
+          + '<button class="icon-btn" onclick="renewSubscription(\'' + escapeHtml(item.id) + '\')">🔄 +30 dias</button>'
+          + '<button class="icon-btn" onclick="copySubscriptionData(\'' + escapeHtml(item.id) + '\')">▣ Copiar dados</button>'
+          + '<button class="icon-btn whatsapp" onclick="openWhatsApp(\'' + escapeHtml(item.id) + '\')">💬 Avisar</button>'
+          + '<button class="icon-btn" onclick="deleteSubscription(\'' + escapeHtml(item.id) + '\')">🗑️</button></div></td></tr>';
+      }).join("");
+      els.mobileList.innerHTML = filtered.map(item => {
+        const status = getStatus(item);
+        const amount = item.amount && Number(item.amount) > 0 ? Number(item.amount).toLocaleString("pt-PT") + " MT" : "—";
+        return '<article class="mobile-card"><div class="mobile-card-top"><div><div class="client-name">' + escapeHtml(item.clientName || "—") + '</div><div class="sub">' + escapeHtml(item.clientPhone || "") + '</div></div><span class="badge ' + status.key + '">' + escapeHtml(status.label) + '</span></div>'
+          + '<div class="mobile-info"><div class="mobile-row"><span>Serviço</span><strong>' + escapeHtml(displayService(item)) + '</strong></div><div class="mobile-row"><span>Valor</span><strong>' + amount + '</strong></div>'
+          + '<div class="mobile-row"><span>E-mail da conta</span><strong>' + escapeHtml(item.accountEmail || "Sem e-mail") + '</strong></div><div class="mobile-row"><span>Perfil</span><strong>' + escapeHtml(item.profileName || "—") + '</strong></div>'
+          + '<div class="mobile-row"><span>Início</span><strong>' + formatDate(item.startDate) + '</strong></div><div class="mobile-row"><span>Término</span><strong>' + formatDate(item.endDate) + '</strong></div></div>'
+          + '<div class="actions"><button class="icon-btn" onclick="editSubscription(\'' + escapeHtml(item.id) + '\')">✏️ Editar</button><button class="icon-btn" onclick="renewSubscription(\'' + escapeHtml(item.id) + '\')">🔄 +30 dias</button>'
+          + '<button class="icon-btn" onclick="copySubscriptionData(\'' + escapeHtml(item.id) + '\')">▣ Copiar dados</button><button class="icon-btn whatsapp" onclick="openWhatsApp(\'' + escapeHtml(item.id) + '\')">💬 Avisar</button>'
+          + '<button class="icon-btn" onclick="deleteSubscription(\'' + escapeHtml(item.id) + '\')">🗑️</button></div></article>';
+      }).join("");
+      els.empty.style.display = filtered.length ? "none" : "block";
+      if (!filtered.length) els.mobileList.innerHTML = '<div class="empty">Ainda não existem assinaturas registadas.</div>';
+    }
+
+    function accountKey(item) {
+      return [normalize(displayService(item)), normalize(item.accountEmail), String(item.accountPassword || "")].join("\u0000");
+    }
+
+    function renderAccounts() {
+      const records = getFilteredSubscriptions().filter(item => String(item.accountEmail || "").trim());
+      const groups = new Map();
+      records.forEach(item => {
+        const key = accountKey(item);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(item);
+      });
+      const services = new Map();
+      groups.forEach(items => {
+        const name = displayService(items[0]);
+        if (!services.has(name)) services.set(name, []);
+        services.get(name).push(items);
+      });
+      const names = Array.from(services.keys()).sort((a, b) => a.localeCompare(b, "pt"));
+      $("#accountCount").textContent = groups.size + (groups.size === 1 ? " conta" : " contas");
+      if (!names.length) {
+        $("#accountsList").innerHTML = '<div class="empty">Não há contas com e-mail para os filtros selecionados.</div>';
+        return;
+      }
+      $("#accountsList").innerHTML = names.map(name => {
+        const cards = services.get(name).map(items => {
+          const item = items[0];
+          const emailVersions = new Set(records.filter(row => displayService(row) === name && normalize(row.accountEmail) === normalize(item.accountEmail)).map(row => String(row.accountPassword || ""))).size;
+          const profiles = Array.from(new Set(items.map(row => String(row.profileName || "").trim()).filter(Boolean)));
+          const profileHtml = profiles.length ? profiles.map(value => '<span class="profile-chip">' + escapeHtml(value) + '</span>').join("") : '<span class="profile-chip">Perfil não indicado</span>';
+          const clients = items.map(row => '<div>' + escapeHtml(row.clientName || "Cliente sem nome") + ' <span class="badge ' + getStatus(row).key + '">' + escapeHtml(getStatus(row).label) + '</span></div>').join("");
+          const warning = emailVersions > 1 ? '<div class="account-duplicate">Este serviço e e-mail aparecem com credenciais diferentes em registos. Confirme o perfil/cliente antes de reutilizar.</div>' : "";
+          const first = items[0];
+          return '<article class="account-card"><div class="account-card-head"><div><div class="account-email">✉ ' + escapeHtml(item.accountEmail) + '</div><div class="sub">' + items.length + (items.length === 1 ? " assinatura associada" : " assinaturas associadas") + '</div></div><span class="badge active">' + profiles.length + (profiles.length === 1 ? " perfil" : " perfis") + '</span></div>'
+            + warning + '<div class="account-profiles">' + profileHtml + '</div><div class="account-subscriptions">' + clients + '</div><div class="account-toolbar">'
+            + '<button class="btn btn-light" type="button" onclick="newFromAccount(\'' + escapeHtml(first.id) + '\')">＋ Nova assinatura com esta conta</button>'
+            + '<button class="btn btn-light" type="button" onclick="copyAccountEmail(\'' + escapeHtml(item.accountEmail).replaceAll("\\", "\\\\").replaceAll("'", "\\'") + '\')">▣ Copiar e-mail</button></div></article>';
+        }).join("");
+        const emailCount = new Set(services.get(name).map(items => normalize(items[0].accountEmail))).size;
+        return '<div class="service-group"><h3><span>' + escapeHtml(name) + '</span><span class="sub">' + emailCount + (emailCount === 1 ? " e-mail" : " e-mails") + " · " + services.get(name).length + (services.get(name).length === 1 ? " conta" : " contas") + '</span></h3><div class="account-grid">' + cards + '</div></div>';
+      }).join("");
+    }
+
+    function render() {
+      updateFilterChoices();
+      renderDashboard();
+      renderTable();
+      renderAccounts();
+      updateAccountSuggestions();
+    }
+
+    function openModal(item = null) {
+      els.form.reset();
+      els.editId.value = "";
+      $("#existingAccount").value = "";
+      $("#accountPassword").type = "password";
+      $("#togglePassword").textContent = "Mostrar";
+      if (item) {
+        els.modalTitle.textContent = "Editar assinatura";
+        els.editId.value = item.id;
+        $("#clientName").value = item.clientName || "";
+        $("#clientPhone").value = item.clientPhone || "";
+        $("#service").value = item.service || "";
+        $("#otherServiceName").value = item.serviceName || "";
+        $("#amount").value = item.amount || "";
+        $("#accountEmail").value = item.accountEmail || "";
+        $("#accountPassword").value = item.accountPassword || "";
+        $("#profileName").value = item.profileName || "";
+        $("#accountPin").value = item.accountPin || "";
+        $("#accountAddress").value = item.accountAddress || "";
+        $("#accountExtraLabel").value = item.accountExtraLabel || "";
+        $("#accountExtraValue").value = item.accountExtraValue || "";
+        $("#startDate").value = item.startDate || "";
+        $("#endDate").value = item.endDate || "";
+        $("#notes").value = item.notes || "";
+      } else {
+        els.modalTitle.textContent = "Adicionar assinatura";
+        const today = new Date();
+        const nextMonth = new Date(today);
+        nextMonth.setDate(nextMonth.getDate() + 30);
+        $("#startDate").value = toInputDate(today);
+        $("#endDate").value = toInputDate(nextMonth);
+      }
+      setServiceFields();
+      updateAccountSuggestions();
+      els.modal.classList.add("show");
+    }
+
+    function buildShareMessage(item) {
+      const lines = ["Obrigado por adquirir a sua assinatura! 🎉", "", "Aqui estão os dados da sua conta:", ""];
+      const add = (label, value) => {
+        if (value != null && String(value).trim()) lines.push(label + ": " + String(value).trim());
+      };
+      add("📺 Serviço", displayService(item));
+      add("📧 E-mail", item.accountEmail);
+      add("🔑 Palavra-passe", item.accountPassword);
+      add("👤 Perfil", item.profileName);
+      add("🔢 PIN", item.accountPin);
+      add("📍 Endereço", item.accountAddress);
+      if (item.startDate) add("📅 Início", formatDate(item.startDate));
+      if (item.endDate) add("📅 Validade", formatDate(item.endDate));
+      if (item.accountExtraLabel && item.accountExtraValue) add(item.accountExtraLabel, item.accountExtraValue);
+      lines.push("", "Obrigado pela preferência!");
+      return lines.join("\n");
+    }
+
+    function openCopyModal(item) {
+      copyContextItem = Object.assign({}, item);
+      $("#shareMessage").value = buildShareMessage(copyContextItem);
+      $("#copyModal").classList.add("show");
+      $("#shareMessage").focus();
+    }
+
+    async function copyText(value, message) {
+      if (!value) return showToast("Não há dados para copiar.");
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = value;
+          temp.style.position = "fixed";
+          temp.style.opacity = "0";
+          document.body.appendChild(temp);
+          temp.select();
+          const copied = document.execCommand("copy");
+          temp.remove();
+          if (!copied) throw new Error("Clipboard indisponível");
+        }
+        showToast(message || "Copiado.");
+      } catch (error) {
+        console.error("Erro ao copiar:", error);
+        alert("Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.");
+      }
+    }
+
+    function useExistingAccount() {
+      const source = subscriptions.find(item => item.id === $("#existingAccount").value);
+      if (!source) return showToast("Selecione uma assinatura existente.");
+      const hasValues = ["#accountEmail", "#accountPassword", "#profileName", "#accountPin", "#accountAddress", "#accountExtraValue"]
+        .some(selector => String($(selector).value || "").trim());
+      if (hasValues && !confirm("Preencher com os dados selecionados e substituir os campos atuais?")) return;
+      $("#service").value = ["Netflix", "Prime Video", "Spotify", "Crunchyroll", "Outro"].includes(source.service) ? source.service : "Outro";
+      $("#otherServiceName").value = source.serviceName || (source.service === "Outro" ? "" : source.service || "");
+      $("#accountEmail").value = source.accountEmail || "";
+      $("#accountPassword").value = source.accountPassword || "";
+      $("#profileName").value = source.profileName || "";
+      $("#accountPin").value = source.accountPin || "";
+      $("#accountAddress").value = source.accountAddress || "";
+      $("#accountExtraLabel").value = source.accountExtraLabel || "";
+      $("#accountExtraValue").value = source.accountExtraValue || "";
+      setServiceFields();
+      updateAccountSuggestions();
+      showToast("Dados da conta preenchidos. Reveja o perfil antes de guardar.");
+    }
+
+    window.copySubscriptionData = id => {
+      const item = subscriptions.find(value => value.id === id);
+      if (item) openCopyModal(item);
+    };
+    window.copyAccountEmail = email => copyText(email, "E-mail copiado.");
+    window.newFromAccount = id => {
+      openModal();
+      $("#existingAccount").value = id;
+      useExistingAccount();
+    };
+    window.editSubscription = id => {
+      const item = subscriptions.find(value => value.id === id);
+      if (item) openModal(item);
+    };
+    window.deleteSubscription = async id => {
+      const item = subscriptions.find(value => value.id === id);
+      if (!item || !confirm("Apagar a assinatura de " + (item.clientName || "este cliente") + "?")) return;
+      try {
+        await deleteSubscriptionFromFirestore(id);
+        showToast("Assinatura eliminada.");
+      } catch (error) {
+        console.error("Erro ao apagar:", error);
+        alert("Não foi possível apagar a assinatura.");
+      }
+    };
+    window.renewSubscription = async id => {
+      const item = subscriptions.find(value => value.id === id);
+      if (!item) return;
+      let baseDate = parseLocalDate(item.endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (baseDate < today) baseDate = today;
+      baseDate.setDate(baseDate.getDate() + 30);
+      try {
+        await saveSubscriptionToFirestore(Object.assign({}, item, { endDate: toInputDate(baseDate) }));
+        showToast("Assinatura renovada por 30 dias.");
+      } catch (error) {
+        console.error("Erro ao renovar:", error);
+        alert("Não foi possível renovar a assinatura.");
+      }
+    };
+    window.openWhatsApp = id => {
+      const item = subscriptions.find(value => value.id === id);
+      if (!item) return;
+      const phone = normalizePhone(item.clientPhone);
+      if (!phone) return alert("Este cliente não possui um número válido.");
+      window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(buildWhatsAppMessage(item)), "_blank", "noopener,noreferrer");
+    };
+
+    // Capture this before the original submit listener, so each save writes one complete record.
+    els.form.addEventListener("submit", async event => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const item = formItem();
+      if (item.service === "Outro" && !item.serviceName) {
+        alert("Indique o nome do serviço.");
+        $("#otherServiceName").focus();
+        return;
+      }
+      if (parseLocalDate(item.endDate) < parseLocalDate(item.startDate)) {
+        alert("A data de término não pode ser anterior à data de início.");
+        return;
+      }
+      const duplicate = subscriptions.some(old => old.id !== item.id
+        && normalize(old.clientPhone) === normalize(item.clientPhone)
+        && normalize(displayService(old)) === normalize(displayService(item))
+        && normalize(old.accountEmail) === normalize(item.accountEmail)
+        && normalize(old.profileName) === normalize(item.profileName)
+        && old.startDate === item.startDate && old.endDate === item.endDate);
+      if (duplicate && !confirm("Já existe um registo muito semelhante para este cliente, serviço, e-mail e perfil. Quer guardar mesmo assim?")) return;
+      try {
+        await saveSubscriptionToFirestore(item);
+        closeModal();
+        showToast(item.id ? "Assinatura atualizada." : "Assinatura guardada.");
+      } catch (error) {
+        console.error("Erro ao guardar:", error);
+        alert("Não foi possível guardar a assinatura no Firestore.");
+      }
+    }, true);
+
+    $("#service").addEventListener("change", setServiceFields);
+    $("#accountEmail").addEventListener("input", updateAccountSuggestions);
+    $("#useExistingAccountBtn").addEventListener("click", useExistingAccount);
+    $("#copyEmailBtn").addEventListener("click", () => copyText($("#accountEmail").value.trim(), "E-mail copiado."));
+    $("#copyPasswordBtn").addEventListener("click", () => copyText($("#accountPassword").value, "Palavra-passe copiada."));
+    $("#copyFormDataBtn").addEventListener("click", () => openCopyModal(formItem()));
+    $("#closeCopyModalBtn").addEventListener("click", () => $("#copyModal").classList.remove("show"));
+    $("#cancelCopyBtn").addEventListener("click", () => $("#copyModal").classList.remove("show"));
+    $("#copyMessageBtn").addEventListener("click", () => copyText($("#shareMessage").value, "Mensagem copiada."));
+    $("#sendMessageBtn").addEventListener("click", () => {
+      if (!copyContextItem) return;
+      const phone = normalizePhone(copyContextItem.clientPhone);
+      if (!phone) return alert("Este cliente não possui um número válido para WhatsApp.");
+      window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent($("#shareMessage").value), "_blank", "noopener,noreferrer");
+      showToast("Mensagem aberta no WhatsApp para revisão.");
+    });
+    [els.search, els.serviceFilter, $("#emailFilter"), $("#clientFilter"), els.statusFilter].forEach(input => {
+      input.addEventListener("input", render);
+      input.addEventListener("change", render);
+    });
+    $("#clearFiltersBtn").addEventListener("click", () => {
+      els.search.value = "";
+      els.serviceFilter.value = "";
+      $("#emailFilter").value = "";
+      $("#clientFilter").value = "";
+      els.statusFilter.value = "";
+      render();
+    });
 
     loadTheme();
-    startFirestoreSync();
+    onAuthStateChanged(auth, user => {
+      const loggedIn = Boolean(user);
+      els.loginScreen.classList.toggle("hidden", loggedIn);
+
+      if (loggedIn) {
+        startFirestoreSync();
+        return;
+      }
+
+      stopFirestoreSync();
+      subscriptions = [];
+      render();
+      setDatabaseStatus("🔒 Entre para carregar as assinaturas.");
+    });
   </script>
 </body>
 </html>
