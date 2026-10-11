@@ -1232,22 +1232,24 @@
 
     function buildWhatsAppMessage(item) {
       const status = getStatus(item);
-      let message = "";
-
+      const name = String(item.clientName || "").trim() || "cliente";
+      const service = displayService(item);
+      const days = daysUntil(item.endDate);
+      let detail;
+      let followUp;
       if (status.key === "expired") {
-        message =
-          `Olá ${item.clientName}, a sua assinatura de ${item.service} terminou no dia ${formatDate(item.endDate)}. ` +
-          `Deseja renovar por mais 30 dias?`;
+        detail = `A sua assinatura de ${service} terminou em ${formatDate(item.endDate)}.`;
+        followUp = "Se quiser renovar por mais 30 dias, responda a esta mensagem.";
       } else if (status.key === "soon") {
-        message =
-          `Olá ${item.clientName}, a sua assinatura de ${item.service} ${status.label.toLowerCase()}. ` +
-          `Deseja renovar antecipadamente por mais 30 dias?`;
+        const timing = days === 0 ? "termina hoje" : days === 1 ? "termina amanhã" : `termina dentro de ${days} dias`;
+        detail = `A sua assinatura de ${service} ${timing} (${formatDate(item.endDate)}).`;
+        followUp = "Se precisar de ajuda ou quiser renovar, responda a esta mensagem.";
       } else {
-        message =
-          `Olá ${item.clientName}, a sua assinatura de ${item.service} está ativa até ${formatDate(item.endDate)}.`;
+        detail = `A sua assinatura de ${service} está ativa até ${formatDate(item.endDate)}.`;
+        followUp = "Se tiver alguma dúvida, responda a esta mensagem.";
       }
 
-      return encodeURIComponent(message);
+      return `Olá, ${name}! 👋\n\n${detail}\n\n${followUp}\n\nObrigado!`;
     }
 
     function openWhatsApp(id) {
@@ -1264,7 +1266,7 @@
         return;
       }
 
-      const url = `https://wa.me/${phone}?text=${buildWhatsAppMessage(item)}`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(buildWhatsAppMessage(item))}`;
       window.open(url, "_blank");
     }
 
